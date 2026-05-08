@@ -1,0 +1,598 @@
+{
+  "updatedAt": "2026-05-06T13:55:55.639Z",
+  "createdAt": "2026-04-25T16:34:59.397Z",
+  "id": "VwG3AgtdDDdjC7xc",
+  "name": "Discord Bridge - Real-time",
+  "description": "Cada 3 min lee 8 canales Discord (leads-* y registros-colombia) y reenvia mensajes nuevos directo al webhook Leads o Recovery. Estado por canal. Email de error si fallan POSTs.",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "00c3cbff-7a63-4f4c-92d0-5da34ead5d49",
+      "name": "Cron 3 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "DISCORD_TOKEN",
+              "value": "MDISCORD_BOT_TOKEN_REDACTEDM",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "N8N_API_KEY",
+              "value": "<<N8N_API_KEY_REDACTED>>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e02166d2-0d40-4e8b-bdc4-df71ee0bbee4",
+      "name": "Set Tokens",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "julio@manzanaverde.la",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "209f467c-bbd6-4dd9-867f-3262a54af366",
+      "name": "Send Error Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        480
+      ],
+      "webhookId": "4d67381b-01e9-4b1c-92fa-9011ce4c4800",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9aMJEFavBpG7JhGo",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "763a3b12-2d62-43a3-9eed-d67ca1385704",
+      "name": "Test manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Bridge Extract: fetch dedup + Discord messages, return array of payloads (no POST).\nconst tokens = $('Set Tokens').first().json;\nconst DISCORD_TOKEN = tokens.DISCORD_TOKEN;\nconst N8N_API_KEY = tokens.N8N_API_KEY;\n\nconst CHANNELS = {\n  '958058547067883562':  { name: 'leads-peru',                target: 'Leads',    country: 'PE' },\n  '958100934645383218':  { name: 'leads-mexico',              target: 'Leads',    country: 'MX' },\n  '1395774463676649502': { name: 'leads-peru-valiosos',       target: 'Leads',    country: 'PE' },\n  '1395774501773639710': { name: 'leads-mexico-valiosos',     target: 'Leads',    country: 'MX' },\n  '1395774545368973506': { name: 'leads-colombia-valiosos',   target: 'Leads',    country: 'CO' },\n  '969325696499482654':  { name: 'registros-colombia',        target: 'Leads',    country: 'CO' },\n  '1344382061363859599': { name: 'leads-recovery-nuevos',     target: 'Recovery', country: 'AUTO' },\n  '1346134811466665984': { name: 'leads-recovery-reconsumos', target: 'Recovery', country: 'AUTO' },\n};\nconst WEBHOOKS = {\n  Leads:    'https://n8n.manzanaverde.la/webhook/0fa4fe5c-a553-4b33-98d3-96b406572118',\n  Recovery: 'https://n8n.manzanaverde.la/webhook/48f220d5-0af8-4b6a-ae25-077d9f0c5d0a',\n};\n\nfunction extractFromContent(content) {\n  if (!content) return null;\n  const out = {};\n  let m;\n  m = content.match(/(?:Tel[ée]fono|Cel(?:ular)?|Phone|Whats(?:app)?)[:\\*\\s]+([+\\d\\s\\-]{8,20}?)(?:[\\*\\n]|$)/i);\n  if (m) {\n    const digits = m[1].replace(/\\D/g, '');\n    if (digits.length >= 9 && digits.length <= 13) out.phone = digits;\n  }\n  if (!out.phone) {\n    const m2 = content.match(/\\b\\+?\\d{9,13}\\b/g);\n    if (m2) {\n      const candidates = m2.filter(x => {\n        const d = x.replace(/\\D/g, '');\n        return d.length >= 9 && d.length <= 13 && !/^(17|18|19|20)/.test(d);\n      });\n      if (candidates.length) {\n        candidates.sort((a, b) => b.replace(/\\D/g, '').length - a.replace(/\\D/g, '').length);\n        out.phone = candidates[0].replace(/\\D/g, '');\n      }\n    }\n  }\n  m = content.match(/(?:Nombres?|Names?)[:\\*\\s]+([^\\n*]+?)(?:\\*|\\n|$)/i);\n  if (m) out.name = m[1].trim();\n  m = content.match(/(?:Correo|Email)[:\\*\\s]+([\\w._+-]+@[\\w.-]+\\.[\\w]+)/i);\n  if (m) out.email = m[1].trim();\n  m = content.match(/Score[:\\*\\s]+([^\\n*]+?)(?:\\*|\\n|$)/i);\n  if (m) out.score = m[1].trim();\n  m = content.match(/(?:Acci[óo]n|Action)[:\\*\\s]+([^\\n*]+?)(?:\\*|\\n|$)/i);\n  if (m) out.action = m[1].trim();\n  m = content.match(/prioridad[:\\*\\s]+([A-Z]+)/i);\n  if (m) out.priority = m[1];\n  m = content.match(/\\((https?:\\/\\/[^\\s)]+)\\)/);\n  if (m) out.link = m[1];\n  return out.phone ? out : null;\n}\nfunction normalizePhone(raw, country) {\n  const d = String(raw||'').replace(/\\D/g, '');\n  if (country === 'PE') {\n    if (d.length === 9 && d.startsWith('9')) return '51' + d;\n    if (d.length === 11 && d.startsWith('51')) return d;\n  }\n  if (country === 'MX') {\n    if (d.length === 10) return '52' + d;\n    if (d.length === 12 && d.startsWith('52')) return d;\n    if (d.length === 13 && d.startsWith('521')) return d;\n  }\n  if (country === 'CO') {\n    if (d.length === 10 && d.startsWith('3')) return '57' + d;\n    if (d.length === 12 && d.startsWith('57')) return d;\n  }\n  if (d.length === 11 && d.startsWith('51')) return d;\n  if (d.length === 9 && d.startsWith('9')) return '51' + d;\n  if (d.length === 12 && d.startsWith('52')) return d;\n  if (d.length === 13 && d.startsWith('521')) return d;\n  if (d.length === 12 && d.startsWith('57')) return d;\n  if (d.length === 10 && d.startsWith('3')) return '57' + d;\n  if (d.length === 10) return '52' + d;\n  return d;\n}\nfunction detectCountry(phone) {\n  const d = String(phone||'').replace(/\\D/g, '');\n  if (d.startsWith('51')) return 'PE';\n  if (d.startsWith('52')) return 'MX';\n  if (d.startsWith('57')) return 'CO';\n  return 'UNKNOWN';\n}\nasync function discordGet(url) {\n  return await this.helpers.httpRequest({ method: 'GET', url, headers: { Authorization: 'Bot ' + DISCORD_TOKEN }, json: true, timeout: 8000 });\n}\n\nconst sd = $getWorkflowStaticData('global');\nif (!sd.cursors) sd.cursors = {};\n\n// Dedup re-enabled with safe limits (limit=5, timeout=8s, fallback empty)\nlet recentPCLPhones = new Set();\nconst cacheTTLMs = 90 * 1000;\nif (sd.dedupCache && (Date.now() - sd.dedupCache.ts) < cacheTTLMs) {\n  recentPCLPhones = new Set(sd.dedupCache.phones);\n} else {\n  try {\n    const cutoff = new Date(Date.now() - 2*60*1000).toISOString();\n    const list = await this.helpers.httpRequest({\n      method: 'GET',\n      url: 'https://n8n.manzanaverde.la/api/v1/executions?workflowId=9MxNM5byLghh9ky2&limit=5&includeData=true',\n      headers: { 'X-N8N-API-KEY': N8N_API_KEY },\n      json: true,\n      timeout: 8000,\n    });\n    const recent = (list.data || []).filter(e => e.startedAt >= cutoff);\n    for (const exec of recent) {\n      try {\n        const rd = (exec.data && exec.data.resultData && exec.data.resultData.runData) || {};\n        for (const trig of ['Leads','Recovery','Seguimiento','Webhook']) {\n          if (rd[trig] && rd[trig][0]) {\n            const body = rd[trig][0].data && rd[trig][0].data.main && rd[trig][0].data.main[0] && rd[trig][0].data.main[0][0] && rd[trig][0].data.main[0][0].json && rd[trig][0].data.main[0][0].json.body;\n            if (body) {\n              const raw = String(body.celular || body.phone || body.number || body.from || '').replace(/D/g, '');\n              if (raw.length >= 9) recentPCLPhones.add(raw.slice(-9));\n            }\n          }\n        }\n      } catch (e) {}\n    }\n    sd.dedupCache = { ts: Date.now(), phones: [...recentPCLPhones] };\n  } catch (e) { sd.dedupCache = sd.dedupCache || { ts: Date.now(), phones: [] }; }\n}\n\n// PARALLEL Discord fetch for all 8 channels\nconst items = [];\nconst channelMaxMsgId = {}; // for cursor advance later\nconst channelInit = {};\n\nconst fetchResults = await Promise.all(Object.entries(CHANNELS).map(async ([channelId, conf]) => {\n  const cursor = sd.cursors[channelId];\n  if (!cursor) {\n    try {\n      const latest = await discordGet.call(this, 'https://discord.com/api/v10/channels/' + channelId + '/messages?limit=1');\n      if (Array.isArray(latest) && latest.length > 0) sd.cursors[channelId] = latest[0].id;\n      else sd.cursors[channelId] = '0';\n    } catch (e) {}\n    return { channelId, init: true, msgs: [] };\n  }\n  let messages = [];\n  try {\n    messages = await discordGet.call(this, 'https://discord.com/api/v10/channels/' + channelId + '/messages?limit=20');\n  } catch (e) { return { channelId, error: e.message, msgs: [] }; }\n  if (!Array.isArray(messages)) return { channelId, msgs: [] };\n  return { channelId, msgs: messages };\n}));\n\nfor (const r of fetchResults) {\n  const conf = CHANNELS[r.channelId];\n  if (r.init) { channelInit[r.channelId] = true; continue; }\n  channelMaxMsgId[r.channelId] = sd.cursors[r.channelId];\n  if (!r.msgs.length) continue;\n  r.msgs.sort((a, b) => (a.id < b.id ? -1 : 1));\n  const _windowMs = 3*60*1000;\n  const _windowCutoff = new Date(Date.now() - _windowMs).toISOString();\n  for (const msg of r.msgs) {\n    if (msg.timestamp < _windowCutoff) continue;\n    if (sd.cursors[r.channelId] && msg.id <= sd.cursors[r.channelId]) continue; // already processed // skip msgs older than 3 min\n    if (msg.id > channelMaxMsgId[r.channelId]) channelMaxMsgId[r.channelId] = msg.id;\n    if (msg.content && /#Error_ManyChat_Contactar_Usuario/i.test(msg.content)) continue;\n    if (!msg.author || !msg.author.bot) continue;\n    let text = msg.content || '';\n    for (const e of (msg.embeds || [])) {\n      text += '\\n' + (e.title||'') + '\\n' + (e.description||'');\n      for (const f of (e.fields || [])) text += '\\n' + (f.name||'') + ': ' + (f.value||'');\n    }\n    const ex = extractFromContent(text);\n    if (!ex || !ex.phone) continue;\n    const phone = normalizePhone(ex.phone, conf.country);\n    const phoneKey = String(phone).slice(-9);\n    if (recentPCLPhones.has(phoneKey)) continue;\n    const country = conf.country === 'AUTO' ? detectCountry(phone) : conf.country;\n    items.push({\n      json: {\n        webhookUrl: WEBHOOKS[conf.target],\n        channelId: r.channelId,\n        msgId: msg.id,\n        channel_name: conf.name,\n        target: conf.target,\n        payload: {\n          celular: phone, email: ex.email || null, phone, pais: country,\n          nombre: ex.name || 'Unknown', score: ex.score || null, priority: ex.priority || null,\n          action: ex.action || null, link: ex.link || null, source: 'discord_bridge',\n          discord_channel: conf.name, discord_message_id: msg.id, discord_timestamp: msg.timestamp,\n        },\n      }\n    });\n  }\n}\n\n// Save channel max msg ids in static data temporarily; updated to cursor in step 3 only on success\nsd._channelMaxSeen = channelMaxMsgId;\n\nif (items.length === 0) return [{ json: { _skip: true, summary: 'no new messages' } }];\nreturn items;"
+      },
+      "id": "bridge-extract-1777950418262",
+      "name": "Bridge Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.webhookUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 8000
+        }
+      },
+      "id": "bridge-http-1777950418262",
+      "name": "Post Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        400
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Bridge Update Cursors: read HTTP results from previous node, advance cursors per channel only on success.\nconst sd = $getWorkflowStaticData('global');\nconst items = $input.all();\n\nconst successByChannel = {}; // channelId -> max successful msgId\nlet totalProcessed = 0, totalErrors = 0;\nconst errorsList = [];\n\nfor (const it of items) {\n  const j = it.json || {};\n  if (j._skip) continue;\n  const channelId = j.channelId;\n  const msgId = j.msgId;\n  // HTTP node attaches response. With neverError, even errors return.\n  // n8n typically merges http response into json. We check by the original payload AND status of latest fields.\n  // The previous node's response is in $json (same item). Look for statusCode or error markers.\n  const sc = j.statusCode;\n  const ok = (typeof sc === 'number' && sc >= 200 && sc < 300) || (j.body && (typeof j.body !== 'string' ? false : false)) || (sc === undefined && !j.error);\n  if (sc >= 200 && sc < 300) {\n    totalProcessed++;\n    if (!successByChannel[channelId] || msgId > successByChannel[channelId]) successByChannel[channelId] = msgId;\n  } else if (sc) {\n    totalErrors++;\n    errorsList.push({ channel: j.channel_name, msgId, status: sc });\n  } else {\n    // No statusCode means HTTP node didn't run? Treat as failed\n    totalErrors++;\n    errorsList.push({ channel: j.channel_name, msgId, status: 'no_response' });\n  }\n}\n\n// Advance cursors only for channels with at least one success\nfor (const [chId, maxId] of Object.entries(successByChannel)) {\n  if (!sd.cursors[chId] || maxId > sd.cursors[chId]) sd.cursors[chId] = maxId;\n}\n\n// Cleanup\ndelete sd._channelMaxSeen;\n\nif (totalErrors > 0) {\n  const ts = new Date().toISOString();\n  return [{ json: { subject: 'Bridge: ' + totalErrors + ' error(s)', html: '<pre>' + JSON.stringify(errorsList, null, 2) + '</pre>', totalProcessed, totalErrors, errors: errorsList, timestamp: ts } }];\n}\nreturn [];"
+      },
+      "id": "bridge-cursors-1777950418262",
+      "name": "Update Cursors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1390,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "id": "split-batches-1778003153733",
+      "name": "Split Batches 5",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        890,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait-10s-1778003153734",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        864,
+        358
+      ],
+      "webhookId": "b44187ca-f820-4d81-bc9d-6f5f39c5a738"
+    }
+  ],
+  "connections": {
+    "Cron 3 min": {
+      "main": [
+        [
+          {
+            "node": "Set Tokens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Tokens": {
+      "main": [
+        [
+          {
+            "node": "Bridge Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manual": {
+      "main": [
+        [
+          {
+            "node": "Set Tokens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bridge Extract": {
+      "main": [
+        [
+          {
+            "node": "Split Batches 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Lead": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Batches 5": {
+      "main": [
+        [
+          {
+            "node": "Update Cursors",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Split Batches 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "aiBuilderAssisted": true
+  },
+  "versionId": "94f81197-a7aa-410e-a362-26fd81392215",
+  "activeVersionId": "94f81197-a7aa-410e-a362-26fd81392215",
+  "versionCounter": 3974,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-25T16:34:59.397Z",
+      "createdAt": "2026-04-25T16:34:59.397Z",
+      "role": "workflow:owner",
+      "workflowId": "VwG3AgtdDDdjC7xc",
+      "projectId": "aSJN5OrkeuDG7MLy",
+      "project": {
+        "updatedAt": "2025-09-25T21:42:21.465Z",
+        "createdAt": "2025-06-20T20:44:35.862Z",
+        "id": "aSJN5OrkeuDG7MLy",
+        "name": "Admin Manzana <admin@manzanaverde.la>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-06T13:55:14.189Z",
+    "createdAt": "2026-05-06T13:55:14.189Z",
+    "versionId": "94f81197-a7aa-410e-a362-26fd81392215",
+    "workflowId": "VwG3AgtdDDdjC7xc",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 3
+              }
+            ]
+          }
+        },
+        "id": "00c3cbff-7a63-4f4c-92d0-5da34ead5d49",
+        "name": "Cron 3 min",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          240,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "DISCORD_TOKEN",
+                "value": "MDISCORD_BOT_TOKEN_REDACTEDM",
+                "type": "string"
+              },
+              {
+                "id": "a2",
+                "name": "N8N_API_KEY",
+                "value": "<<N8N_API_KEY_REDACTED>>",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "e02166d2-0d40-4e8b-bdc4-df71ee0bbee4",
+        "name": "Set Tokens",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          448,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "sendTo": "julio@manzanaverde.la",
+          "subject": "={{ $json.subject }}",
+          "message": "={{ $json.html }}",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "id": "209f467c-bbd6-4dd9-867f-3262a54af366",
+        "name": "Send Error Email",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          880,
+          480
+        ],
+        "webhookId": "4d67381b-01e9-4b1c-92fa-9011ce4c4800",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "9aMJEFavBpG7JhGo",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "id": "763a3b12-2d62-43a3-9eed-d67ca1385704",
+        "name": "Test manual",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Bridge Extract: fetch dedup + Discord messages, return array of payloads (no POST).\nconst tokens = $('Set Tokens').first().json;\nconst DISCORD_TOKEN = tokens.DISCORD_TOKEN;\nconst N8N_API_KEY = tokens.N8N_API_KEY;\n\nconst CHANNELS = {\n  '958058547067883562':  { name: 'leads-peru',                target: 'Leads',    country: 'PE' },\n  '958100934645383218':  { name: 'leads-mexico',              target: 'Leads',    country: 'MX' },\n  '1395774463676649502': { name: 'leads-peru-valiosos',       target: 'Leads',    country: 'PE' },\n  '1395774501773639710': { name: 'leads-mexico-valiosos',     target: 'Leads',    country: 'MX' },\n  '1395774545368973506': { name: 'leads-colombia-valiosos',   target: 'Leads',    country: 'CO' },\n  '969325696499482654':  { name: 'registros-colombia',        target: 'Leads',    country: 'CO' },\n  '1344382061363859599': { name: 'leads-recovery-nuevos',     target: 'Recovery', country: 'AUTO' },\n  '1346134811466665984': { name: 'leads-recovery-reconsumos', target: 'Recovery', country: 'AUTO' },\n};\nconst WEBHOOKS = {\n  Leads:    'https://n8n.manzanaverde.la/webhook/0fa4fe5c-a553-4b33-98d3-96b406572118',\n  Recovery: 'https://n8n.manzanaverde.la/webhook/48f220d5-0af8-4b6a-ae25-077d9f0c5d0a',\n};\n\nfunction extractFromContent(content) {\n  if (!content) return null;\n  const out = {};\n  let m;\n  m = content.match(/(?:Tel[ée]fono|Cel(?:ular)?|Phone|Whats(?:app)?)[:\\*\\s]+([+\\d\\s\\-]{8,20}?)(?:[\\*\\n]|$)/i);\n  if (m) {\n    const digits = m[1].replace(/\\D/g, '');\n    if (digits.length >= 9 && digits.length <= 13) out.phone = digits;\n  }\n  if (!out.phone) {\n    const m2 = content.match(/\\b\\+?\\d{9,13}\\b/g);\n    if (m2) {\n      const candidates = m2.filter(x => {\n        const d = x.replace(/\\D/g, '');\n        return d.length >= 9 && d.length <= 13 && !/^(17|18|19|20)/.test(d);\n      });\n      if (candidates.length) {\n        candidates.sort((a, b) => b.replace(/\\D/g, '').length - a.replace(/\\D/g, '').length);\n        out.phone = candidates[0].replace(/\\D/g, '');\n      }\n    }\n  }\n  m = content.match(/(?:Nombres?|Names?)[:\\*\\s]+([^\\n*]+?)(?:\\*|\\n|$)/i);\n  if (m) out.name = m[1].trim();\n  m = content.match(/(?:Correo|Email)[:\\*\\s]+([\\w._+-]+@[\\w.-]+\\.[\\w]+)/i);\n  if (m) out.email = m[1].trim();\n  m = content.match(/Score[:\\*\\s]+([^\\n*]+?)(?:\\*|\\n|$)/i);\n  if (m) out.score = m[1].trim();\n  m = content.match(/(?:Acci[óo]n|Action)[:\\*\\s]+([^\\n*]+?)(?:\\*|\\n|$)/i);\n  if (m) out.action = m[1].trim();\n  m = content.match(/prioridad[:\\*\\s]+([A-Z]+)/i);\n  if (m) out.priority = m[1];\n  m = content.match(/\\((https?:\\/\\/[^\\s)]+)\\)/);\n  if (m) out.link = m[1];\n  return out.phone ? out : null;\n}\nfunction normalizePhone(raw, country) {\n  const d = String(raw||'').replace(/\\D/g, '');\n  if (country === 'PE') {\n    if (d.length === 9 && d.startsWith('9')) return '51' + d;\n    if (d.length === 11 && d.startsWith('51')) return d;\n  }\n  if (country === 'MX') {\n    if (d.length === 10) return '52' + d;\n    if (d.length === 12 && d.startsWith('52')) return d;\n    if (d.length === 13 && d.startsWith('521')) return d;\n  }\n  if (country === 'CO') {\n    if (d.length === 10 && d.startsWith('3')) return '57' + d;\n    if (d.length === 12 && d.startsWith('57')) return d;\n  }\n  if (d.length === 11 && d.startsWith('51')) return d;\n  if (d.length === 9 && d.startsWith('9')) return '51' + d;\n  if (d.length === 12 && d.startsWith('52')) return d;\n  if (d.length === 13 && d.startsWith('521')) return d;\n  if (d.length === 12 && d.startsWith('57')) return d;\n  if (d.length === 10 && d.startsWith('3')) return '57' + d;\n  if (d.length === 10) return '52' + d;\n  return d;\n}\nfunction detectCountry(phone) {\n  const d = String(phone||'').replace(/\\D/g, '');\n  if (d.startsWith('51')) return 'PE';\n  if (d.startsWith('52')) return 'MX';\n  if (d.startsWith('57')) return 'CO';\n  return 'UNKNOWN';\n}\nasync function discordGet(url) {\n  return await this.helpers.httpRequest({ method: 'GET', url, headers: { Authorization: 'Bot ' + DISCORD_TOKEN }, json: true, timeout: 8000 });\n}\n\nconst sd = $getWorkflowStaticData('global');\nif (!sd.cursors) sd.cursors = {};\n\n// Dedup re-enabled with safe limits (limit=5, timeout=8s, fallback empty)\nlet recentPCLPhones = new Set();\nconst cacheTTLMs = 90 * 1000;\nif (sd.dedupCache && (Date.now() - sd.dedupCache.ts) < cacheTTLMs) {\n  recentPCLPhones = new Set(sd.dedupCache.phones);\n} else {\n  try {\n    const cutoff = new Date(Date.now() - 2*60*1000).toISOString();\n    const list = await this.helpers.httpRequest({\n      method: 'GET',\n      url: 'https://n8n.manzanaverde.la/api/v1/executions?workflowId=9MxNM5byLghh9ky2&limit=5&includeData=true',\n      headers: { 'X-N8N-API-KEY': N8N_API_KEY },\n      json: true,\n      timeout: 8000,\n    });\n    const recent = (list.data || []).filter(e => e.startedAt >= cutoff);\n    for (const exec of recent) {\n      try {\n        const rd = (exec.data && exec.data.resultData && exec.data.resultData.runData) || {};\n        for (const trig of ['Leads','Recovery','Seguimiento','Webhook']) {\n          if (rd[trig] && rd[trig][0]) {\n            const body = rd[trig][0].data && rd[trig][0].data.main && rd[trig][0].data.main[0] && rd[trig][0].data.main[0][0] && rd[trig][0].data.main[0][0].json && rd[trig][0].data.main[0][0].json.body;\n            if (body) {\n              const raw = String(body.celular || body.phone || body.number || body.from || '').replace(/D/g, '');\n              if (raw.length >= 9) recentPCLPhones.add(raw.slice(-9));\n            }\n          }\n        }\n      } catch (e) {}\n    }\n    sd.dedupCache = { ts: Date.now(), phones: [...recentPCLPhones] };\n  } catch (e) { sd.dedupCache = sd.dedupCache || { ts: Date.now(), phones: [] }; }\n}\n\n// PARALLEL Discord fetch for all 8 channels\nconst items = [];\nconst channelMaxMsgId = {}; // for cursor advance later\nconst channelInit = {};\n\nconst fetchResults = await Promise.all(Object.entries(CHANNELS).map(async ([channelId, conf]) => {\n  const cursor = sd.cursors[channelId];\n  if (!cursor) {\n    try {\n      const latest = await discordGet.call(this, 'https://discord.com/api/v10/channels/' + channelId + '/messages?limit=1');\n      if (Array.isArray(latest) && latest.length > 0) sd.cursors[channelId] = latest[0].id;\n      else sd.cursors[channelId] = '0';\n    } catch (e) {}\n    return { channelId, init: true, msgs: [] };\n  }\n  let messages = [];\n  try {\n    messages = await discordGet.call(this, 'https://discord.com/api/v10/channels/' + channelId + '/messages?limit=20');\n  } catch (e) { return { channelId, error: e.message, msgs: [] }; }\n  if (!Array.isArray(messages)) return { channelId, msgs: [] };\n  return { channelId, msgs: messages };\n}));\n\nfor (const r of fetchResults) {\n  const conf = CHANNELS[r.channelId];\n  if (r.init) { channelInit[r.channelId] = true; continue; }\n  channelMaxMsgId[r.channelId] = sd.cursors[r.channelId];\n  if (!r.msgs.length) continue;\n  r.msgs.sort((a, b) => (a.id < b.id ? -1 : 1));\n  const _windowMs = 3*60*1000;\n  const _windowCutoff = new Date(Date.now() - _windowMs).toISOString();\n  for (const msg of r.msgs) {\n    if (msg.timestamp < _windowCutoff) continue;\n    if (sd.cursors[r.channelId] && msg.id <= sd.cursors[r.channelId]) continue; // already processed // skip msgs older than 3 min\n    if (msg.id > channelMaxMsgId[r.channelId]) channelMaxMsgId[r.channelId] = msg.id;\n    if (msg.content && /#Error_ManyChat_Contactar_Usuario/i.test(msg.content)) continue;\n    if (!msg.author || !msg.author.bot) continue;\n    let text = msg.content || '';\n    for (const e of (msg.embeds || [])) {\n      text += '\\n' + (e.title||'') + '\\n' + (e.description||'');\n      for (const f of (e.fields || [])) text += '\\n' + (f.name||'') + ': ' + (f.value||'');\n    }\n    const ex = extractFromContent(text);\n    if (!ex || !ex.phone) continue;\n    const phone = normalizePhone(ex.phone, conf.country);\n    const phoneKey = String(phone).slice(-9);\n    if (recentPCLPhones.has(phoneKey)) continue;\n    const country = conf.country === 'AUTO' ? detectCountry(phone) : conf.country;\n    items.push({\n      json: {\n        webhookUrl: WEBHOOKS[conf.target],\n        channelId: r.channelId,\n        msgId: msg.id,\n        channel_name: conf.name,\n        target: conf.target,\n        payload: {\n          celular: phone, email: ex.email || null, phone, pais: country,\n          nombre: ex.name || 'Unknown', score: ex.score || null, priority: ex.priority || null,\n          action: ex.action || null, link: ex.link || null, source: 'discord_bridge',\n          discord_channel: conf.name, discord_message_id: msg.id, discord_timestamp: msg.timestamp,\n        },\n      }\n    });\n  }\n}\n\n// Save channel max msg ids in static data temporarily; updated to cursor in step 3 only on success\nsd._channelMaxSeen = channelMaxMsgId;\n\nif (items.length === 0) return [{ json: { _skip: true, summary: 'no new messages' } }];\nreturn items;"
+        },
+        "id": "bridge-extract-1777950418262",
+        "name": "Bridge Extract",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          640,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $json.webhookUrl }}",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.payload) }}",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            },
+            "timeout": 8000
+          }
+        },
+        "id": "bridge-http-1777950418262",
+        "name": "Post Lead",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1140,
+          400
+        ],
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Bridge Update Cursors: read HTTP results from previous node, advance cursors per channel only on success.\nconst sd = $getWorkflowStaticData('global');\nconst items = $input.all();\n\nconst successByChannel = {}; // channelId -> max successful msgId\nlet totalProcessed = 0, totalErrors = 0;\nconst errorsList = [];\n\nfor (const it of items) {\n  const j = it.json || {};\n  if (j._skip) continue;\n  const channelId = j.channelId;\n  const msgId = j.msgId;\n  // HTTP node attaches response. With neverError, even errors return.\n  // n8n typically merges http response into json. We check by the original payload AND status of latest fields.\n  // The previous node's response is in $json (same item). Look for statusCode or error markers.\n  const sc = j.statusCode;\n  const ok = (typeof sc === 'number' && sc >= 200 && sc < 300) || (j.body && (typeof j.body !== 'string' ? false : false)) || (sc === undefined && !j.error);\n  if (sc >= 200 && sc < 300) {\n    totalProcessed++;\n    if (!successByChannel[channelId] || msgId > successByChannel[channelId]) successByChannel[channelId] = msgId;\n  } else if (sc) {\n    totalErrors++;\n    errorsList.push({ channel: j.channel_name, msgId, status: sc });\n  } else {\n    // No statusCode means HTTP node didn't run? Treat as failed\n    totalErrors++;\n    errorsList.push({ channel: j.channel_name, msgId, status: 'no_response' });\n  }\n}\n\n// Advance cursors only for channels with at least one success\nfor (const [chId, maxId] of Object.entries(successByChannel)) {\n  if (!sd.cursors[chId] || maxId > sd.cursors[chId]) sd.cursors[chId] = maxId;\n}\n\n// Cleanup\ndelete sd._channelMaxSeen;\n\nif (totalErrors > 0) {\n  const ts = new Date().toISOString();\n  return [{ json: { subject: 'Bridge: ' + totalErrors + ' error(s)', html: '<pre>' + JSON.stringify(errorsList, null, 2) + '</pre>', totalProcessed, totalErrors, errors: errorsList, timestamp: ts } }];\n}\nreturn [];"
+        },
+        "id": "bridge-cursors-1777950418262",
+        "name": "Update Cursors",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1390,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "batchSize": 5,
+          "options": {}
+        },
+        "id": "split-batches-1778003153733",
+        "name": "Split Batches 5",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          890,
+          400
+        ]
+      },
+      {
+        "parameters": {
+          "amount": 10,
+          "unit": "seconds"
+        },
+        "id": "wait-10s-1778003153734",
+        "name": "Wait 10s",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          864,
+          358
+        ],
+        "webhookId": "b44187ca-f820-4d81-bc9d-6f5f39c5a738"
+      }
+    ],
+    "connections": {
+      "Cron 3 min": {
+        "main": [
+          [
+            {
+              "node": "Set Tokens",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Tokens": {
+        "main": [
+          [
+            {
+              "node": "Bridge Extract",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Test manual": {
+        "main": [
+          [
+            {
+              "node": "Set Tokens",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Bridge Extract": {
+        "main": [
+          [
+            {
+              "node": "Split Batches 5",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Post Lead": {
+        "main": [
+          [
+            {
+              "node": "Wait 10s",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Batches 5": {
+        "main": [
+          [
+            {
+              "node": "Update Cursors",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Post Lead",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait 10s": {
+        "main": [
+          [
+            {
+              "node": "Split Batches 5",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Admin Manzana",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-06T13:55:17.260Z",
+        "id": 1127,
+        "workflowId": "VwG3AgtdDDdjC7xc",
+        "versionId": "94f81197-a7aa-410e-a362-26fd81392215",
+        "event": "deactivated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      },
+      {
+        "createdAt": "2026-05-06T13:55:21.970Z",
+        "id": 1128,
+        "workflowId": "VwG3AgtdDDdjC7xc",
+        "versionId": "94f81197-a7aa-410e-a362-26fd81392215",
+        "event": "activated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      },
+      {
+        "createdAt": "2026-05-06T13:55:55.678Z",
+        "id": 1129,
+        "workflowId": "VwG3AgtdDDdjC7xc",
+        "versionId": "94f81197-a7aa-410e-a362-26fd81392215",
+        "event": "deactivated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      },
+      {
+        "createdAt": "2026-05-06T13:55:55.701Z",
+        "id": 1130,
+        "workflowId": "VwG3AgtdDDdjC7xc",
+        "versionId": "94f81197-a7aa-410e-a362-26fd81392215",
+        "event": "activated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    ]
+  }
+}

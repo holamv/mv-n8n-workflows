@@ -1,0 +1,2384 @@
+{
+  "updatedAt": "2026-02-25T16:55:12.035Z",
+  "createdAt": "2026-02-16T21:10:14.786Z",
+  "id": "9MxNM5byLghh9ky2",
+  "name": "Primer Contacto Leads",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0fa4fe5c-a553-4b33-98d3-96b406572118",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1200,
+        -112
+      ],
+      "id": "92502396-9d40-456e-9e34-199aa5964b05",
+      "name": "Leads",
+      "webhookId": "0fa4fe5c-a553-4b33-98d3-96b406572118"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "48f220d5-0af8-4b6a-ae25-077d9f0c5d0a",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1200,
+        304
+      ],
+      "id": "89b2ff79-e7b5-4fe2-90fd-16284101e6aa",
+      "name": "Recovery",
+      "webhookId": "48f220d5-0af8-4b6a-ae25-077d9f0c5d0a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "95175a0f-84c3-4473-bee6-58bdf31627a1",
+              "name": "body",
+              "value": "={{ $('Leads').item.json.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -640,
+        -112
+      ],
+      "id": "19e8ccfe-06ce-4839-bc62-0b4b8003ba04",
+      "name": "Contenido_Lead"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead').item.json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -432,
+        -112
+      ],
+      "id": "859078eb-5dea-45a3-b4e3-7f5994163c08",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        64
+      ],
+      "id": "81977133-b9ce-4c45-8832-39e71e5031c1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "9UgcUKxBiejeCUPs",
+          "name": "Crede Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        144
+      ],
+      "id": "e5cb257e-94da-4850-aa58-d85f76d65f32",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        -112
+      ],
+      "id": "37ba07f2-4f56-44a6-ab7f-539178e880d0",
+      "name": "Obtener ID",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+              "name": "suscriber_id",
+              "value": "={{ $('Obtener ID').item?.json?.body?.data?.id || $('Obtener Suscriber').item?.json?.body?.data?.[0]?.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        -96
+      ],
+      "id": "1a7a44e6-59e7-43ae-8da2-c1a6b2ad7ad5",
+      "name": "CID"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres el asistente de automatización de Manzana Verde.\nTu objetivo es validar el estado del cliente y generar la respuesta correcta.\n\n### DATOS DE ENTRADA:\n- Nombre Completo: Extraelo de la fuente Info Ventas\n- Estado (Status): Extraelo de la fuente Info Ventas\n- País: Extraelo de la fuente Contenido_Lead\n\n### REGLAS DE EJECUCIÓN (STRICT):\n\nCASO 1: CLIENTE YA COMPRÓ\nSi el \"Estado\" es \"diario\" O \"mensual\":\n-> Tu ÚNICA respuesta debe ser exacta y sin comillas: Cliente Activo\n(Detente aquí, no generes nada más).\n\nCASO 2: NUEVO REGISTRO\nSi el \"Estado\" es \"registro\" (o vacío), genera el mensaje de bienvenida.\n\n1. Determina el precio según el \"País\":\n   - Si es Perú (o PE): S/.150.00\n   - Si es Colombia (o CO): $150,000.00\n   - Si es México (o MX): $959.00\n   - Defecto: S/.169.00\n\n2. Extrae solo el PRIMER NOMBRE del \"Nombre Completo\" (Ej: Ayaris Tobon -> Ayaris).\n\n3. Genera este mensaje exacto reemplazando [Nombre] y [Precio]:\n\"Hola [Nombre]! 👋 Vi que acabas de registrarte en Manzana Verde. ¿Te gustaría que te ayude a armar tu primera semana de alimentación saludable? Tenemos planes desde [Precio] 🥗\"",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead').item.json) }}\n\n=== FUENTE: Info Cliente (Puede venir como JSON string) ===\n{{ JSON.stringify($('Info Ventas').item.json) }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        736,
+        -96
+      ],
+      "id": "5a67a945-6e96-4997-87f7-cc1990d233e3",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID').item?.json?.body?.data?.id || $('CID').item?.json?.suscriber_id }}",
+        "messageData": "={{ $json.text }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "d2b5005c-d89d-4a6a-940c-02aaa0aa4aba",
+      "name": "Savemsj",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendFlow",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subscriber_id",
+              "value": "={{ $('CID').item.json.suscriber_id }}"
+            },
+            {
+              "name": "flow_ns",
+              "value": "content20260217225004_743997"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1584,
+        -80
+      ],
+      "id": "86e41edf-8c18-42eb-907c-f1b0666b9419",
+      "name": "Primer Mensaje",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Leads').item.json.body.celular }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        400,
+        -96
+      ],
+      "id": "1bb34461-d30b-4a48-a228-7136e081895d",
+      "name": "Info Ventas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1eKxy1CYVOxeopAP",
+          "name": "Token Backend"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "=error",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -112
+      ],
+      "id": "313ce101-dcfb-458a-b68b-cb6ce504e6d4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "field_id",
+              "value": "=14087783"
+            },
+            {
+              "name": "field_value",
+              "value": "={{ $('AI Agent').item.json.output.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        192,
+        -256
+      ],
+      "id": "f42bb59b-b800-43cf-9988-e492b50f55bc",
+      "name": "Obtener Suscriber",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -416
+      ],
+      "id": "defa6aa6-329c-455f-a65f-616e1f656524",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"subscriber_id\": \"653267487\",\n  \"data\": {\n    \"version\": \"v2\",\n    \"content\": {\n      \"type\": \"whatsapp\",\n      \"messages\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Hola\"\n        }\n      ]\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1104,
+        -416
+      ],
+      "id": "ae357866-db00-48a7-8f3e-91ae023383c3",
+      "name": "Contacto",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 900
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -912,
+        -112
+      ],
+      "id": "9b9bd409-fbe5-4ce2-9eed-abf6ccf55019",
+      "name": "Wait",
+      "webhookId": "347c1bac-805f-4b26-924a-ead457a0b045"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "95175a0f-84c3-4473-bee6-58bdf31627a1",
+              "name": "body",
+              "value": "={{ $('Recovery').item.json.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        304
+      ],
+      "id": "42950bd6-ecbc-4c0b-8e33-b5a8fe978bd8",
+      "name": "Contenido_Lead1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead1').item.json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -464,
+        304
+      ],
+      "id": "ef525e5c-a701-473e-9084-79b55e6e4c18",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        608
+      ],
+      "id": "7aabb8fa-8d98-4f48-8cf4-f50da137996a",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "9UgcUKxBiejeCUPs",
+          "name": "Crede Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -320,
+        560
+      ],
+      "id": "889b0f86-8528-40bd-9bd3-35807de42b6d",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -192,
+        304
+      ],
+      "id": "7d316002-2282-4c20-bdc9-476c8681613d",
+      "name": "Obtener ID1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+              "name": "suscriber_id",
+              "value": "={{ $('Obtener ID1').item?.json?.body?.data?.id || $('Obtener Suscriber1').item?.json?.body?.data?.[0]?.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        320
+      ],
+      "id": "f82e5b26-60c6-4d4c-b8ed-14756c19d3f4",
+      "name": "CID1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres \"Eva de Manzana Verde\" 🍏. Tu tono es amigable, entusiasta, saludable y orientado a las ventas. Usas emojis como 🍏, 🥳 y 💚. Tu único objetivo es comunicar una oferta de descuento personalizada basada en el país del cliente.Datos de Precios Base (Referencia):Utiliza estos precios base para calcular el descuento.Perú (PE): Moneda: S/. | Ahorro: 298.00 | Flexible: 390.00Colombia (CO): Moneda: $ | Ahorro: 298,000.00 | Flexible: 390,000.00México (MX): Moneda: $ | Ahorro: 1,910.00 | Flexible: 2,499.00Instrucciones de Lógica y Cálculo:Identificar: Detecta el nombre del cliente y su país (Perú, Colombia o México).Calcular: Toma el precio base del país correspondiente y aplica un 10% de descuento matemático exacto ($PrecioBase \\times 0.9$).Ejemplo de cálculo: Si el precio es 298, el precio con descuento es 268.2.Formatear: Genera la respuesta siguiendo estrictamente la plantilla de abajo, reemplazando los valores entre corchetes [] con los datos calculados.Plantilla de Respuesta Obligatoria:\"Hola [Nombre del Cliente], soy Eva de Manzana verde🍏Noté que tienes interés en nuestros planes de comidas saludables .Tenemos 10% OFF en el plan ahorro ([Moneda][Precio Base Ahorro] a [Moneda][Precio Ahorro con 10% OFF]) y el plan flexible (de [Moneda][Precio Base Flexible] a [Moneda][Precio Flexible con 10% OFF]), te gustaría aprovechar este gran descuento?🥳💚\"Restricciones:No inventes precios fuera de la tabla proporcionada.Mantén el formato de moneda local (S/. para Perú, $ para Colombia/México).Si el cálculo resulta en decimales largos, redondéalos a 2 decimales (o a enteros si es habitual en la moneda como en Colombia).",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead1').item.json) }}\n\n=== FUENTE: Info Cliente (Puede venir como JSON string) ===\n{{ JSON.stringify($('Info Ventas1').item.json) }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        704,
+        320
+      ],
+      "id": "2458cb94-3490-425f-a4b3-7ae890067ede",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Recovery').item.json.body.phone }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        368,
+        320
+      ],
+      "id": "1f2f2f9d-08c2-4dae-a4b0-4c9ca76f5f9a",
+      "name": "Info Ventas1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1eKxy1CYVOxeopAP",
+          "name": "Token Backend"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "=error",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        304
+      ],
+      "id": "b18b9988-218a-46de-a439-0cc5f468de6e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "field_id",
+              "value": "=14087783"
+            },
+            {
+              "name": "field_value",
+              "value": "={{ $('AI Agent1').item.json.output.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        176
+      ],
+      "id": "c7adba98-41b2-4b2f-8028-f664e0377c6b",
+      "name": "Obtener Suscriber1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 900
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -912,
+        304
+      ],
+      "id": "26312991-2756-4776-a5f2-b3d5a82e1af2",
+      "name": "Wait1",
+      "webhookId": "347c1bac-805f-4b26-924a-ead457a0b045"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID1').item?.json?.body?.data?.id || $('CID1').item?.json?.suscriber_id }}",
+        "messageData": "={{ $json.text }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        320
+      ],
+      "id": "50bed4cf-2f3a-4e3d-a348-12236a66579d",
+      "name": "Savemsj1",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendFlow",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subscriber_id",
+              "value": "={{ $('CID1').item.json.suscriber_id }}"
+            },
+            {
+              "name": "flow_ns",
+              "value": "content20260218184628_506515"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        320
+      ],
+      "id": "1fffd482-0c11-4cdf-bcd5-4cb821eb567d",
+      "name": "Primer Mensaje1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "944da44c-044a-4a60-8108-e52239dbb640",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "Cliente Activo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        -96
+      ],
+      "id": "d8d261b8-80f0-4742-9560-cc34658f25cc",
+      "name": "If2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        -240
+      ],
+      "id": "cc625553-f723-421d-b448-773c2bb37398",
+      "name": "No Operation, do nothing"
+    }
+  ],
+  "connections": {
+    "Leads": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contenido_Lead": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Obtener ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener ID": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CID": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Savemsj",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Ventas": {
+      "main": [
+        [
+          {
+            "node": "CID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Obtener Suscriber",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Info Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Contenido_Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contenido_Lead1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Obtener ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener ID1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CID1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Ventas1": {
+      "main": [
+        [
+          {
+            "node": "CID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Obtener Suscriber1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Info Ventas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Contenido_Lead1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj1": {
+      "main": [
+        [
+          {
+            "node": "Primer Mensaje1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Savemsj1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Suscriber1": {
+      "main": [
+        [
+          {
+            "node": "Info Ventas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Suscriber": {
+      "main": [
+        [
+          {
+            "node": "Info Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Primer Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "versionId": "8be7d61a-3d50-478e-a397-5754edecd188",
+  "activeVersionId": "8be7d61a-3d50-478e-a397-5754edecd188",
+  "versionCounter": 121,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-02-16T21:10:14.786Z",
+      "createdAt": "2026-02-16T21:10:14.786Z",
+      "role": "workflow:owner",
+      "workflowId": "9MxNM5byLghh9ky2",
+      "projectId": "hppye0tThsH5JKmN",
+      "project": {
+        "updatedAt": "2025-06-26T00:30:56.688Z",
+        "createdAt": "2025-06-26T00:29:43.524Z",
+        "id": "hppye0tThsH5JKmN",
+        "name": "Julio Mori <julio.mori1501@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "3575c3dd-d27c-46f3-9849-9bd95e462b95"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-03T02:42:56.113Z",
+    "createdAt": "2026-03-03T02:42:56.113Z",
+    "versionId": "8be7d61a-3d50-478e-a397-5754edecd188",
+    "workflowId": "9MxNM5byLghh9ky2",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "0fa4fe5c-a553-4b33-98d3-96b406572118",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1200,
+          -112
+        ],
+        "id": "92502396-9d40-456e-9e34-199aa5964b05",
+        "name": "Leads",
+        "webhookId": "0fa4fe5c-a553-4b33-98d3-96b406572118"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "48f220d5-0af8-4b6a-ae25-077d9f0c5d0a",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1200,
+          304
+        ],
+        "id": "89b2ff79-e7b5-4fe2-90fd-16284101e6aa",
+        "name": "Recovery",
+        "webhookId": "48f220d5-0af8-4b6a-ae25-077d9f0c5d0a"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "95175a0f-84c3-4473-bee6-58bdf31627a1",
+                "name": "body",
+                "value": "={{ $('Leads').item.json.body }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -640,
+          -112
+        ],
+        "id": "19e8ccfe-06ce-4839-bc62-0b4b8003ba04",
+        "name": "Contenido_Lead"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead').item.json) }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -432,
+          -112
+        ],
+        "id": "859078eb-5dea-45a3-b4e3-7f5994163c08",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          224,
+          64
+        ],
+        "id": "81977133-b9ce-4c45-8832-39e71e5031c1",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "9UgcUKxBiejeCUPs",
+            "name": "Crede Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -288,
+          144
+        ],
+        "id": "e5cb257e-94da-4850-aa58-d85f76d65f32",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -160,
+          -112
+        ],
+        "id": "37ba07f2-4f56-44a6-ab7f-539178e880d0",
+        "name": "Obtener ID",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+                "name": "suscriber_id",
+                "value": "={{ $('Obtener ID').item?.json?.body?.data?.id || $('Obtener Suscriber').item?.json?.body?.data?.[0]?.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          560,
+          -96
+        ],
+        "id": "1a7a44e6-59e7-43ae-8da2-c1a6b2ad7ad5",
+        "name": "CID"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Eres el asistente de automatización de Manzana Verde.\nTu objetivo es validar el estado del cliente y generar la respuesta correcta.\n\n### DATOS DE ENTRADA:\n- Nombre Completo: Extraelo de la fuente Info Ventas\n- Estado (Status): Extraelo de la fuente Info Ventas\n- País: Extraelo de la fuente Contenido_Lead\n\n### REGLAS DE EJECUCIÓN (STRICT):\n\nCASO 1: CLIENTE YA COMPRÓ\nSi el \"Estado\" es \"diario\" O \"mensual\":\n-> Tu ÚNICA respuesta debe ser exacta y sin comillas: Cliente Activo\n(Detente aquí, no generes nada más).\n\nCASO 2: NUEVO REGISTRO\nSi el \"Estado\" es \"registro\" (o vacío), genera el mensaje de bienvenida.\n\n1. Determina el precio según el \"País\":\n   - Si es Perú (o PE): S/.150.00\n   - Si es Colombia (o CO): $150,000.00\n   - Si es México (o MX): $959.00\n   - Defecto: S/.169.00\n\n2. Extrae solo el PRIMER NOMBRE del \"Nombre Completo\" (Ej: Ayaris Tobon -> Ayaris).\n\n3. Genera este mensaje exacto reemplazando [Nombre] y [Precio]:\n\"Hola [Nombre]! 👋 Vi que acabas de registrarte en Manzana Verde. ¿Te gustaría que te ayude a armar tu primera semana de alimentación saludable? Tenemos planes desde [Precio] 🥗\"",
+          "messages": {
+            "messageValues": [
+              {
+                "message": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead').item.json) }}\n\n=== FUENTE: Info Cliente (Puede venir como JSON string) ===\n{{ JSON.stringify($('Info Ventas').item.json) }}"
+              }
+            ]
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.7,
+        "position": [
+          736,
+          -96
+        ],
+        "id": "5a67a945-6e96-4997-87f7-cc1990d233e3",
+        "name": "Basic LLM Chain"
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID').item?.json?.body?.data?.id || $('CID').item?.json?.suscriber_id }}",
+          "messageData": "={{ $json.text }}"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          1040,
+          -96
+        ],
+        "id": "d2b5005c-d89d-4a6a-940c-02aaa0aa4aba",
+        "name": "Savemsj",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendFlow",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "subscriber_id",
+                "value": "={{ $('CID').item.json.suscriber_id }}"
+              },
+              {
+                "name": "flow_ns",
+                "value": "content20260217225004_743997"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "text"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1584,
+          -80
+        ],
+        "id": "86e41edf-8c18-42eb-907c-f1b0666b9419",
+        "name": "Primer Mensaje",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Leads').item.json.body.celular }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          400,
+          -96
+        ],
+        "id": "1bb34461-d30b-4a48-a228-7136e081895d",
+        "name": "Info Ventas",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "1eKxy1CYVOxeopAP",
+            "name": "Token Backend"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+                "leftValue": "={{ $json.body.status }}",
+                "rightValue": "=error",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          16,
+          -112
+        ],
+        "id": "313ce101-dcfb-458a-b68b-cb6ce504e6d4",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "field_id",
+                "value": "=14087783"
+              },
+              {
+                "name": "field_value",
+                "value": "={{ $('AI Agent').item.json.output.phone }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          192,
+          -256
+        ],
+        "id": "f42bb59b-b800-43cf-9988-e492b50f55bc",
+        "name": "Obtener Suscriber",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          864,
+          -416
+        ],
+        "id": "defa6aa6-329c-455f-a65f-616e1f656524",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendContent",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"subscriber_id\": \"653267487\",\n  \"data\": {\n    \"version\": \"v2\",\n    \"content\": {\n      \"type\": \"whatsapp\",\n      \"messages\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"Hola\"\n        }\n      ]\n    }\n  }\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1104,
+          -416
+        ],
+        "id": "ae357866-db00-48a7-8f3e-91ae023383c3",
+        "name": "Contacto",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "amount": 900
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          -912,
+          -112
+        ],
+        "id": "9b9bd409-fbe5-4ce2-9eed-abf6ccf55019",
+        "name": "Wait",
+        "webhookId": "347c1bac-805f-4b26-924a-ead457a0b045"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "95175a0f-84c3-4473-bee6-58bdf31627a1",
+                "name": "body",
+                "value": "={{ $('Recovery').item.json.body }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -672,
+          304
+        ],
+        "id": "42950bd6-ecbc-4c0b-8e33-b5a8fe978bd8",
+        "name": "Contenido_Lead1"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead1').item.json) }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -464,
+          304
+        ],
+        "id": "ef525e5c-a701-473e-9084-79b55e6e4c18",
+        "name": "AI Agent1"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          336,
+          608
+        ],
+        "id": "7aabb8fa-8d98-4f48-8cf4-f50da137996a",
+        "name": "OpenAI Chat Model1",
+        "credentials": {
+          "openAiApi": {
+            "id": "9UgcUKxBiejeCUPs",
+            "name": "Crede Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -320,
+          560
+        ],
+        "id": "889b0f86-8528-40bd-9bd3-35807de42b6d",
+        "name": "Structured Output Parser1"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -192,
+          304
+        ],
+        "id": "7d316002-2282-4c20-bdc9-476c8681613d",
+        "name": "Obtener ID1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+                "name": "suscriber_id",
+                "value": "={{ $('Obtener ID1').item?.json?.body?.data?.id || $('Obtener Suscriber1').item?.json?.body?.data?.[0]?.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          528,
+          320
+        ],
+        "id": "f82e5b26-60c6-4d4c-b8ed-14756c19d3f4",
+        "name": "CID1"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Eres \"Eva de Manzana Verde\" 🍏. Tu tono es amigable, entusiasta, saludable y orientado a las ventas. Usas emojis como 🍏, 🥳 y 💚. Tu único objetivo es comunicar una oferta de descuento personalizada basada en el país del cliente.Datos de Precios Base (Referencia):Utiliza estos precios base para calcular el descuento.Perú (PE): Moneda: S/. | Ahorro: 298.00 | Flexible: 390.00Colombia (CO): Moneda: $ | Ahorro: 298,000.00 | Flexible: 390,000.00México (MX): Moneda: $ | Ahorro: 1,910.00 | Flexible: 2,499.00Instrucciones de Lógica y Cálculo:Identificar: Detecta el nombre del cliente y su país (Perú, Colombia o México).Calcular: Toma el precio base del país correspondiente y aplica un 10% de descuento matemático exacto ($PrecioBase \\times 0.9$).Ejemplo de cálculo: Si el precio es 298, el precio con descuento es 268.2.Formatear: Genera la respuesta siguiendo estrictamente la plantilla de abajo, reemplazando los valores entre corchetes [] con los datos calculados.Plantilla de Respuesta Obligatoria:\"Hola [Nombre del Cliente], soy Eva de Manzana verde🍏Noté que tienes interés en nuestros planes de comidas saludables .Tenemos 10% OFF en el plan ahorro ([Moneda][Precio Base Ahorro] a [Moneda][Precio Ahorro con 10% OFF]) y el plan flexible (de [Moneda][Precio Base Flexible] a [Moneda][Precio Flexible con 10% OFF]), te gustaría aprovechar este gran descuento?🥳💚\"Restricciones:No inventes precios fuera de la tabla proporcionada.Mantén el formato de moneda local (S/. para Perú, $ para Colombia/México).Si el cálculo resulta en decimales largos, redondéalos a 2 decimales (o a enteros si es habitual en la moneda como en Colombia).",
+          "messages": {
+            "messageValues": [
+              {
+                "message": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Contenido_Lead1').item.json) }}\n\n=== FUENTE: Info Cliente (Puede venir como JSON string) ===\n{{ JSON.stringify($('Info Ventas1').item.json) }}"
+              }
+            ]
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.7,
+        "position": [
+          704,
+          320
+        ],
+        "id": "2458cb94-3490-425f-a4b3-7ae890067ede",
+        "name": "Basic LLM Chain1"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Recovery').item.json.body.phone }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          368,
+          320
+        ],
+        "id": "1f2f2f9d-08c2-4dae-a4b0-4c9ca76f5f9a",
+        "name": "Info Ventas1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "1eKxy1CYVOxeopAP",
+            "name": "Token Backend"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+                "leftValue": "={{ $json.body.status }}",
+                "rightValue": "=error",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -16,
+          304
+        ],
+        "id": "b18b9988-218a-46de-a439-0cc5f468de6e",
+        "name": "If1"
+      },
+      {
+        "parameters": {
+          "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "field_id",
+                "value": "=14087783"
+              },
+              {
+                "name": "field_value",
+                "value": "={{ $('AI Agent1').item.json.output.phone }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          160,
+          176
+        ],
+        "id": "c7adba98-41b2-4b2f-8028-f664e0377c6b",
+        "name": "Obtener Suscriber1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "amount": 900
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          -912,
+          304
+        ],
+        "id": "26312991-2756-4776-a5f2-b3d5a82e1af2",
+        "name": "Wait1",
+        "webhookId": "347c1bac-805f-4b26-924a-ead457a0b045"
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID1').item?.json?.body?.data?.id || $('CID1').item?.json?.suscriber_id }}",
+          "messageData": "={{ $json.text }}"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          1072,
+          320
+        ],
+        "id": "50bed4cf-2f3a-4e3d-a348-12236a66579d",
+        "name": "Savemsj1",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendFlow",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "subscriber_id",
+                "value": "={{ $('CID1').item.json.suscriber_id }}"
+              },
+              {
+                "name": "flow_ns",
+                "value": "content20260218184628_506515"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "text"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1296,
+          320
+        ],
+        "id": "1fffd482-0c11-4cdf-bcd5-4cb821eb567d",
+        "name": "Primer Mensaje1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "944da44c-044a-4a60-8108-e52239dbb640",
+                "leftValue": "={{ $json.text }}",
+                "rightValue": "Cliente Activo",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1248,
+          -96
+        ],
+        "id": "d8d261b8-80f0-4742-9560-cc34658f25cc",
+        "name": "If2"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1568,
+          -240
+        ],
+        "id": "cc625553-f723-421d-b448-773c2bb37398",
+        "name": "No Operation, do nothing"
+      }
+    ],
+    "connections": {
+      "Leads": {
+        "main": [
+          [
+            {
+              "node": "Wait",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Contenido_Lead": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            },
+            {
+              "node": "Basic LLM Chain",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Obtener ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener ID": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "CID": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Basic LLM Chain": {
+        "main": [
+          [
+            {
+              "node": "Savemsj",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj": {
+        "main": [
+          [
+            {
+              "node": "If2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Info Ventas": {
+        "main": [
+          [
+            {
+              "node": "CID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Obtener Suscriber",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Info Ventas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Contacto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait": {
+        "main": [
+          [
+            {
+              "node": "Contenido_Lead",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Contenido_Lead1": {
+        "main": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent1": {
+        "main": [
+          [
+            {
+              "node": "Obtener ID1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "ai_languageModel",
+              "index": 0
+            },
+            {
+              "node": "Basic LLM Chain1",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser1": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener ID1": {
+        "main": [
+          [
+            {
+              "node": "If1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "CID1": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Info Ventas1": {
+        "main": [
+          [
+            {
+              "node": "CID1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If1": {
+        "main": [
+          [
+            {
+              "node": "Obtener Suscriber1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Info Ventas1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait1": {
+        "main": [
+          [
+            {
+              "node": "Contenido_Lead1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Recovery": {
+        "main": [
+          [
+            {
+              "node": "Wait1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj1": {
+        "main": [
+          [
+            {
+              "node": "Primer Mensaje1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Basic LLM Chain1": {
+        "main": [
+          [
+            {
+              "node": "Savemsj1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener Suscriber1": {
+        "main": [
+          [
+            {
+              "node": "Info Ventas1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener Suscriber": {
+        "main": [
+          [
+            {
+              "node": "Info Ventas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If2": {
+        "main": [
+          [
+            {
+              "node": "No Operation, do nothing",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Primer Mensaje",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-25T16:55:12.035Z",
+        "id": 47,
+        "workflowId": "9MxNM5byLghh9ky2",
+        "versionId": "8be7d61a-3d50-478e-a397-5754edecd188",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

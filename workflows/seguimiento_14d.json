@@ -1,0 +1,3764 @@
+{
+  "updatedAt": "2026-04-01T19:03:57.733Z",
+  "createdAt": "2026-03-09T22:15:30.977Z",
+  "id": "FS68xVacNF1DN9cd",
+  "name": "Seguimiento 14 días - Sin Pedir",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1a176766-3314-43e7-874d-13fbbd68e78a",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1664,
+        176
+      ],
+      "id": "4af3857d-7673-49fd-8f8e-32cc0367a286",
+      "name": "Seguimiento",
+      "webhookId": "1a176766-3314-43e7-874d-13fbbd68e78a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0096901-d3d3-44be-a2a3-cc3e4a16d735",
+              "name": "body.nombres",
+              "value": "={{ $json.body.nombres }}",
+              "type": "string"
+            },
+            {
+              "id": "e963bdf6-ab31-44f2-81b3-601890b6e27b",
+              "name": "body.celular",
+              "value": "={{ $json.body.celular }}",
+              "type": "string"
+            },
+            {
+              "id": "3b38b4ef-3fb7-45a0-9da5-0d52370d07f3",
+              "name": "body.pais",
+              "value": "={{ $json.body.pais }}",
+              "type": "string"
+            },
+            {
+              "id": "b18e53d6-c270-44ad-b97f-d29446cf8f64",
+              "name": "Condición",
+              "value": "={{ $json.body['Condición'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        -304
+      ],
+      "id": "feacee88-823e-49d2-a25f-16a624db230d",
+      "name": "Datos"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Datos').item.json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -752,
+        -304
+      ],
+      "id": "25051922-cb0e-4826-beca-00069c4dd0f2",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        -48
+      ],
+      "id": "23bef47e-b1a3-436e-a964-1e542e624c98",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        -304
+      ],
+      "id": "0223a583-9575-456d-b2fd-e5c19288c7a1",
+      "name": "Obtener ID1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+              "name": "suscriber_id",
+              "value": "={{ $('Obtener ID1').item?.json?.body?.data?.id || $('Obtener Suscriber1').item?.json?.body?.data?.[0]?.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        -288
+      ],
+      "id": "91d5812f-cd0b-4426-a742-e3da122d90ce",
+      "name": "CID1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Datos').item.json.body.celular }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        80,
+        -288
+      ],
+      "id": "d67f1bba-4179-41e1-bc52-35e23e64e23a",
+      "name": "Info Ventas1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1eKxy1CYVOxeopAP",
+          "name": "Token Backend"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "=error",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        -304
+      ],
+      "id": "87a5f122-9b54-421c-8209-87b7b8de5645",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "field_id",
+              "value": "=14087783"
+            },
+            {
+              "name": "field_value",
+              "value": "={{ $('AI Agent1').item.json.output.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        -432
+      ],
+      "id": "def5d98a-9e59-4646-adb4-e872d58e4b43",
+      "name": "Obtener Suscriber1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID1').item?.json?.body?.data?.id || $('CID1').item?.json?.suscriber_id }}",
+        "messageData": "=El cliente lleva sin pedir 14 días, se le ha ofrecido un descuento 10% en su proximo pedido"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -288
+      ],
+      "id": "54b5b850-cb07-4fef-b497-94cb4d4a3f4e",
+      "name": "Savemsj1",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendFlow",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subscriber_id",
+              "value": "={{ $('CID1').item.json.suscriber_id }}"
+            },
+            {
+              "name": "flow_ns",
+              "value": "content20260313144726_469632"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1392,
+        -272
+      ],
+      "id": "35a8cc11-073a-4639-b5ea-7821ec667b38",
+      "name": "Primer Mensaje1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -864,
+        -64
+      ],
+      "id": "55352f39-980b-413f-afea-238c6d8ded12",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "tZPRyt9AN5iXl9s3",
+          "name": "Primer Pedido Seguimiento"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID1').item?.json?.body?.data?.id || $('CID1').item?.json?.suscriber_id }}",
+        "messageData": "=ultima_etiqueta: RECONSUMO_POSITIVO"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        464,
+        -288
+      ],
+      "id": "84e187c6-8c82-44c3-8af4-e7699e8f59a0",
+      "name": "Savemsj",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff03d821-8083-4cff-af44-de25ca5ebe6f",
+              "leftValue": "={{ $now.hour }}",
+              "rightValue": 19,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        -288
+      ],
+      "id": "98e3ebb9-c467-4fc6-a734-18e981c99d1a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $now.plus({days: 1}).set({hour: 10, minute: 0, second: 0}) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        -400
+      ],
+      "id": "5f442207-8a44-4303-be7f-bec6d3ff0783",
+      "name": "Wait1",
+      "webhookId": "817c4653-c20e-4990-a511-e62a5fb0ea88"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0096901-d3d3-44be-a2a3-cc3e4a16d735",
+              "name": "body.nombres",
+              "value": "={{ $json.body.nombres }}",
+              "type": "string"
+            },
+            {
+              "id": "e963bdf6-ab31-44f2-81b3-601890b6e27b",
+              "name": "body.celular",
+              "value": "={{ $json.body.celular }}",
+              "type": "string"
+            },
+            {
+              "id": "3b38b4ef-3fb7-45a0-9da5-0d52370d07f3",
+              "name": "body.pais",
+              "value": "={{ $json.body.pais }}",
+              "type": "string"
+            },
+            {
+              "id": "b18e53d6-c270-44ad-b97f-d29446cf8f64",
+              "name": "Condición",
+              "value": "={{ $json.body['Condición'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        176
+      ],
+      "id": "30b69620-89d9-4123-9f95-fe8af46b575b",
+      "name": "Datos1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Datos1').item.json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -752,
+        176
+      ],
+      "id": "ea7a8d5d-80e2-4d73-b2e8-a6d3dd5f3838",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        432
+      ],
+      "id": "960f507d-9652-4983-a08a-489e08752cbd",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        176
+      ],
+      "id": "0f16cf85-25fb-4806-8b52-7a134a895b04",
+      "name": "Obtener ID",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+              "name": "suscriber_id",
+              "value": "={{ $('Obtener ID').item?.json?.body?.data?.id || $('Obtener Suscriber').item?.json?.body?.data?.[0]?.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        192
+      ],
+      "id": "9801941e-3e3e-4c8e-ba4b-8e0f412fea17",
+      "name": "CID"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Datos1').item.json.body.celular }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        80,
+        192
+      ],
+      "id": "08305ce0-ff4d-445c-a3f8-f7e0fc97485e",
+      "name": "Info Ventas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1eKxy1CYVOxeopAP",
+          "name": "Token Backend"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "=error",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        176
+      ],
+      "id": "bf311321-346d-4e5b-825a-ad725663334d",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "field_id",
+              "value": "=14087783"
+            },
+            {
+              "name": "field_value",
+              "value": "={{ $('AI Agent').item.json.output.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        48
+      ],
+      "id": "a5a392c5-121e-418e-b5f9-ca22f80aa77b",
+      "name": "Obtener Suscriber",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID').item?.json?.body?.data?.id || $('CID').item?.json?.suscriber_id }}",
+        "messageData": "El cliente ha pedido 4 veces seguida y para esta ocación se le está ofreciendo un descuento del 20% en su 5to pedido"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        656,
+        192
+      ],
+      "id": "bb41d5ea-7aaa-4823-adf8-6eeb52e3ed4d",
+      "name": "Savemsj2",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendFlow",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subscriber_id",
+              "value": "={{ $('CID').item.json.suscriber_id }}"
+            },
+            {
+              "name": "flow_ns",
+              "value": "content20260313150954_841395"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1392,
+        208
+      ],
+      "id": "0a07fb95-1ae0-4ffd-85a4-b8123f02714f",
+      "name": "Primer Mensaje",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -864,
+        416
+      ],
+      "id": "f6a68bf0-ee5d-4b53-9ecc-577d59bf8c71",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "tZPRyt9AN5iXl9s3",
+          "name": "Primer Pedido Seguimiento"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID').item?.json?.body?.data?.id || $('CID').item?.json?.suscriber_id }}",
+        "messageData": "=ultima_etiqueta: RECONSUMO_POSITIVO"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        464,
+        192
+      ],
+      "id": "1b577d3c-eb3e-4221-b269-c82e07d0b013",
+      "name": "Savemsj3",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff03d821-8083-4cff-af44-de25ca5ebe6f",
+              "leftValue": "={{ $now.hour }}",
+              "rightValue": 19,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        192
+      ],
+      "id": "135c0c3f-b7f4-4d8f-85d3-4e06354f12eb",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $now.plus({days: 1}).set({hour: 10, minute: 0, second: 0}) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        80
+      ],
+      "id": "7cb65eb9-fe6c-4555-aa52-10952e96be38",
+      "name": "Wait3",
+      "webhookId": "817c4653-c20e-4990-a511-e62a5fb0ea88"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body['Condición'] }}",
+                    "rightValue": "sin pedir",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "5414e754-4d7d-4ade-b7b1-201a98c807f4"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "97c38eec-ebf2-454b-8253-2f15d8ec811a",
+                    "leftValue": "={{ $json.body['Condición'] }}",
+                    "rightValue": "4to pedido",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6c77bd6a-38cf-4281-b962-2b765462f461",
+                    "leftValue": "={{ $json.body['Condición'] }}",
+                    "rightValue": "primer pedido",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1376,
+        160
+      ],
+      "id": "e178c7ac-30dd-4008-8995-212300581b53",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0096901-d3d3-44be-a2a3-cc3e4a16d735",
+              "name": "body.nombres",
+              "value": "={{ $json.body.nombres }}",
+              "type": "string"
+            },
+            {
+              "id": "e963bdf6-ab31-44f2-81b3-601890b6e27b",
+              "name": "body.celular",
+              "value": "={{ $json.body.celular }}",
+              "type": "string"
+            },
+            {
+              "id": "3b38b4ef-3fb7-45a0-9da5-0d52370d07f3",
+              "name": "body.pais",
+              "value": "={{ $json.body.pais }}",
+              "type": "string"
+            },
+            {
+              "id": "b18e53d6-c270-44ad-b97f-d29446cf8f64",
+              "name": "Condición",
+              "value": "={{ $json.body['Condición'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -928,
+        768
+      ],
+      "id": "86afd9c0-64d5-46d8-922c-11a8303852eb",
+      "name": "Datos2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Datos2').item.json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -736,
+        768
+      ],
+      "id": "1e15c8ad-4b10-477a-af8b-4b634040e2eb",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -592,
+        1024
+      ],
+      "id": "6f2ddd84-801f-491f-9836-a4beeaa95c65",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -464,
+        768
+      ],
+      "id": "7b23c702-d932-4f87-9088-9d607cd04d2f",
+      "name": "Obtener ID2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+              "name": "suscriber_id",
+              "value": "={{ $('Obtener ID2').item?.json?.body?.data?.id || $('Obtener Suscriber2').item?.json?.body?.data?.[0]?.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        784
+      ],
+      "id": "0a7722da-eb9c-4a05-bcb4-55df307d9d89",
+      "name": "CID2"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Datos2').item.json.body.celular }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        96,
+        784
+      ],
+      "id": "a37a97db-5fe4-4e56-8749-22d314b129f4",
+      "name": "Info Ventas2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1eKxy1CYVOxeopAP",
+          "name": "Token Backend"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+              "leftValue": "={{ $json.body.status }}",
+              "rightValue": "=error",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        768
+      ],
+      "id": "826a679c-7b69-4ea9-86ea-ac2e0489c40e",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "field_id",
+              "value": "=14087783"
+            },
+            {
+              "name": "field_value",
+              "value": "={{ $('AI Agent2').item.json.output.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        640
+      ],
+      "id": "6a88ea30-bc18-4167-86dd-18a07e7a6d71",
+      "name": "Obtener Suscriber2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID2').item?.json?.body?.data?.id || $('CID2').item?.json?.suscriber_id }}",
+        "messageData": "El cliente ha pedido 4 veces seguida y para esta ocación se le está ofreciendo un descuento del 20% en su 5to pedido"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        672,
+        784
+      ],
+      "id": "b4830469-441a-4483-8a3e-ffda41b9f13e",
+      "name": "Savemsj4",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendFlow",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subscriber_id",
+              "value": "={{ $('CID2').item.json.suscriber_id }}"
+            },
+            {
+              "name": "flow_ns",
+              "value": "content20260401185724_087344"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1408,
+        800
+      ],
+      "id": "6c1a6dd7-7801-4d4c-8874-2ddffe604993",
+      "name": "Primer Mensaje2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        1008
+      ],
+      "id": "fad390fc-bd98-46a6-b63b-a9de7ede4e48",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "tZPRyt9AN5iXl9s3",
+          "name": "Primer Pedido Seguimiento"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=user:{{ $('Obtener ID2').item?.json?.body?.data?.id || $('CID2').item?.json?.suscriber_id }}",
+        "messageData": "=ultima_etiqueta: RECONSUMO_POSITIVO"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        480,
+        784
+      ],
+      "id": "70c353de-1829-4f7b-aded-65e5a6df5af1",
+      "name": "Savemsj5",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff03d821-8083-4cff-af44-de25ca5ebe6f",
+              "leftValue": "={{ $now.hour }}",
+              "rightValue": 19,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        784
+      ],
+      "id": "a05181ec-cb9e-4f89-8f58-596ae12919f2",
+      "name": "If6"
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $now.plus({days: 1}).set({hour: 10, minute: 0, second: 0}) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1136,
+        672
+      ],
+      "id": "b131e5ce-a4bd-4fdd-b760-f581690f86cc",
+      "name": "Wait",
+      "webhookId": "817c4653-c20e-4990-a511-e62a5fb0ea88"
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1136,
+        880
+      ],
+      "id": "ed2a89b0-7b0b-4738-a46e-2f43cd36ec01",
+      "name": "Wait2",
+      "webhookId": "601e026f-a6f7-423b-8e2e-d293140c0ec5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "699e7b91-0070-40d6-93ef-26fcf03b5baf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1728,
+        1344
+      ],
+      "id": "3a050f13-b446-4929-9243-143c82d30a4f",
+      "name": "Webhook",
+      "webhookId": "699e7b91-0070-40d6-93ef-26fcf03b5baf"
+    }
+  ],
+  "connections": {
+    "Datos": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Obtener ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener ID1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CID1": {
+      "main": [
+        [
+          {
+            "node": "Savemsj",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Ventas1": {
+      "main": [
+        [
+          {
+            "node": "CID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Obtener Suscriber1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Info Ventas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Suscriber1": {
+      "main": [
+        [
+          {
+            "node": "Info Ventas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj": {
+      "main": [
+        [
+          {
+            "node": "Savemsj1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Primer Mensaje1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Primer Mensaje1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Seguimiento": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Obtener ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener ID": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CID": {
+      "main": [
+        [
+          {
+            "node": "Savemsj3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Ventas": {
+      "main": [
+        [
+          {
+            "node": "CID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Obtener Suscriber",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Info Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Suscriber": {
+      "main": [
+        [
+          {
+            "node": "Info Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj2": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj3": {
+      "main": [
+        [
+          {
+            "node": "Savemsj2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Primer Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Primer Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Datos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Obtener ID2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener ID2": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CID2": {
+      "main": [
+        [
+          {
+            "node": "Savemsj5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Ventas2": {
+      "main": [
+        [
+          {
+            "node": "CID2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Obtener Suscriber2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Info Ventas2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Suscriber2": {
+      "main": [
+        [
+          {
+            "node": "Info Ventas2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj4": {
+      "main": [
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Savemsj5": {
+      "main": [
+        [
+          {
+            "node": "Savemsj4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Primer Mensaje2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Primer Mensaje2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "versionId": "ec6d171c-b2c8-4617-b04c-f2ec6b229cfc",
+  "activeVersionId": "ec6d171c-b2c8-4617-b04c-f2ec6b229cfc",
+  "versionCounter": 165,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-03-09T22:15:30.977Z",
+      "createdAt": "2026-03-09T22:15:30.977Z",
+      "role": "workflow:owner",
+      "workflowId": "FS68xVacNF1DN9cd",
+      "projectId": "aSJN5OrkeuDG7MLy",
+      "project": {
+        "updatedAt": "2025-09-25T21:42:21.465Z",
+        "createdAt": "2025-06-20T20:44:35.862Z",
+        "id": "aSJN5OrkeuDG7MLy",
+        "name": "Admin Manzana <admin@manzanaverde.la>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-01T19:04:03.882Z",
+    "createdAt": "2026-04-01T19:03:57.739Z",
+    "versionId": "ec6d171c-b2c8-4617-b04c-f2ec6b229cfc",
+    "workflowId": "FS68xVacNF1DN9cd",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "1a176766-3314-43e7-874d-13fbbd68e78a",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1664,
+          176
+        ],
+        "id": "4af3857d-7673-49fd-8f8e-32cc0367a286",
+        "name": "Seguimiento",
+        "webhookId": "1a176766-3314-43e7-874d-13fbbd68e78a"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a0096901-d3d3-44be-a2a3-cc3e4a16d735",
+                "name": "body.nombres",
+                "value": "={{ $json.body.nombres }}",
+                "type": "string"
+              },
+              {
+                "id": "e963bdf6-ab31-44f2-81b3-601890b6e27b",
+                "name": "body.celular",
+                "value": "={{ $json.body.celular }}",
+                "type": "string"
+              },
+              {
+                "id": "3b38b4ef-3fb7-45a0-9da5-0d52370d07f3",
+                "name": "body.pais",
+                "value": "={{ $json.body.pais }}",
+                "type": "string"
+              },
+              {
+                "id": "b18e53d6-c270-44ad-b97f-d29446cf8f64",
+                "name": "Condición",
+                "value": "={{ $json.body['Condición'] }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -944,
+          -304
+        ],
+        "id": "feacee88-823e-49d2-a25f-16a624db230d",
+        "name": "Datos"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Datos').item.json) }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -752,
+          -304
+        ],
+        "id": "25051922-cb0e-4826-beca-00069c4dd0f2",
+        "name": "AI Agent1"
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -608,
+          -48
+        ],
+        "id": "23bef47e-b1a3-436e-a964-1e542e624c98",
+        "name": "Structured Output Parser1"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -480,
+          -304
+        ],
+        "id": "0223a583-9575-456d-b2fd-e5c19288c7a1",
+        "name": "Obtener ID1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+                "name": "suscriber_id",
+                "value": "={{ $('Obtener ID1').item?.json?.body?.data?.id || $('Obtener Suscriber1').item?.json?.body?.data?.[0]?.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          240,
+          -288
+        ],
+        "id": "91d5812f-cd0b-4426-a742-e3da122d90ce",
+        "name": "CID1"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Datos').item.json.body.celular }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          80,
+          -288
+        ],
+        "id": "d67f1bba-4179-41e1-bc52-35e23e64e23a",
+        "name": "Info Ventas1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "1eKxy1CYVOxeopAP",
+            "name": "Token Backend"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+                "leftValue": "={{ $json.body.status }}",
+                "rightValue": "=error",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -304,
+          -304
+        ],
+        "id": "87a5f122-9b54-421c-8209-87b7b8de5645",
+        "name": "If1"
+      },
+      {
+        "parameters": {
+          "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "field_id",
+                "value": "=14087783"
+              },
+              {
+                "name": "field_value",
+                "value": "={{ $('AI Agent1').item.json.output.phone }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -128,
+          -432
+        ],
+        "id": "def5d98a-9e59-4646-adb4-e872d58e4b43",
+        "name": "Obtener Suscriber1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID1').item?.json?.body?.data?.id || $('CID1').item?.json?.suscriber_id }}",
+          "messageData": "=El cliente lleva sin pedir 14 días, se le ha ofrecido un descuento 10% en su proximo pedido"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          656,
+          -288
+        ],
+        "id": "54b5b850-cb07-4fef-b497-94cb4d4a3f4e",
+        "name": "Savemsj1",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendFlow",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "subscriber_id",
+                "value": "={{ $('CID1').item.json.suscriber_id }}"
+              },
+              {
+                "name": "flow_ns",
+                "value": "content20260313144726_469632"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "text"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1392,
+          -272
+        ],
+        "id": "35a8cc11-073a-4639-b5ea-7821ec667b38",
+        "name": "Primer Mensaje1",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          -864,
+          -64
+        ],
+        "id": "55352f39-980b-413f-afea-238c6d8ded12",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "tZPRyt9AN5iXl9s3",
+            "name": "Primer Pedido Seguimiento"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID1').item?.json?.body?.data?.id || $('CID1').item?.json?.suscriber_id }}",
+          "messageData": "=ultima_etiqueta: RECONSUMO_POSITIVO"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          464,
+          -288
+        ],
+        "id": "84e187c6-8c82-44c3-8af4-e7699e8f59a0",
+        "name": "Savemsj",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "ff03d821-8083-4cff-af44-de25ca5ebe6f",
+                "leftValue": "={{ $now.hour }}",
+                "rightValue": 19,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          864,
+          -288
+        ],
+        "id": "98e3ebb9-c467-4fc6-a734-18e981c99d1a",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "resume": "specificTime",
+          "dateTime": "={{ $now.plus({days: 1}).set({hour: 10, minute: 0, second: 0}) }}"
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1104,
+          -400
+        ],
+        "id": "5f442207-8a44-4303-be7f-bec6d3ff0783",
+        "name": "Wait1",
+        "webhookId": "817c4653-c20e-4990-a511-e62a5fb0ea88"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a0096901-d3d3-44be-a2a3-cc3e4a16d735",
+                "name": "body.nombres",
+                "value": "={{ $json.body.nombres }}",
+                "type": "string"
+              },
+              {
+                "id": "e963bdf6-ab31-44f2-81b3-601890b6e27b",
+                "name": "body.celular",
+                "value": "={{ $json.body.celular }}",
+                "type": "string"
+              },
+              {
+                "id": "3b38b4ef-3fb7-45a0-9da5-0d52370d07f3",
+                "name": "body.pais",
+                "value": "={{ $json.body.pais }}",
+                "type": "string"
+              },
+              {
+                "id": "b18e53d6-c270-44ad-b97f-d29446cf8f64",
+                "name": "Condición",
+                "value": "={{ $json.body['Condición'] }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -944,
+          176
+        ],
+        "id": "30b69620-89d9-4123-9f95-fe8af46b575b",
+        "name": "Datos1"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Datos1').item.json) }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -752,
+          176
+        ],
+        "id": "ea7a8d5d-80e2-4d73-b2e8-a6d3dd5f3838",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -608,
+          432
+        ],
+        "id": "960f507d-9652-4983-a08a-489e08752cbd",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -480,
+          176
+        ],
+        "id": "0f16cf85-25fb-4806-8b52-7a134a895b04",
+        "name": "Obtener ID",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+                "name": "suscriber_id",
+                "value": "={{ $('Obtener ID').item?.json?.body?.data?.id || $('Obtener Suscriber').item?.json?.body?.data?.[0]?.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          240,
+          192
+        ],
+        "id": "9801941e-3e3e-4c8e-ba4b-8e0f412fea17",
+        "name": "CID"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Datos1').item.json.body.celular }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          80,
+          192
+        ],
+        "id": "08305ce0-ff4d-445c-a3f8-f7e0fc97485e",
+        "name": "Info Ventas",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "1eKxy1CYVOxeopAP",
+            "name": "Token Backend"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+                "leftValue": "={{ $json.body.status }}",
+                "rightValue": "=error",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -304,
+          176
+        ],
+        "id": "bf311321-346d-4e5b-825a-ad725663334d",
+        "name": "If3"
+      },
+      {
+        "parameters": {
+          "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "field_id",
+                "value": "=14087783"
+              },
+              {
+                "name": "field_value",
+                "value": "={{ $('AI Agent').item.json.output.phone }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -128,
+          48
+        ],
+        "id": "a5a392c5-121e-418e-b5f9-ca22f80aa77b",
+        "name": "Obtener Suscriber",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID').item?.json?.body?.data?.id || $('CID').item?.json?.suscriber_id }}",
+          "messageData": "El cliente ha pedido 4 veces seguida y para esta ocación se le está ofreciendo un descuento del 20% en su 5to pedido"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          656,
+          192
+        ],
+        "id": "bb41d5ea-7aaa-4823-adf8-6eeb52e3ed4d",
+        "name": "Savemsj2",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendFlow",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "subscriber_id",
+                "value": "={{ $('CID').item.json.suscriber_id }}"
+              },
+              {
+                "name": "flow_ns",
+                "value": "content20260313150954_841395"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "text"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1392,
+          208
+        ],
+        "id": "0a07fb95-1ae0-4ffd-85a4-b8123f02714f",
+        "name": "Primer Mensaje",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          -864,
+          416
+        ],
+        "id": "f6a68bf0-ee5d-4b53-9ecc-577d59bf8c71",
+        "name": "OpenAI Chat Model1",
+        "credentials": {
+          "openAiApi": {
+            "id": "tZPRyt9AN5iXl9s3",
+            "name": "Primer Pedido Seguimiento"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID').item?.json?.body?.data?.id || $('CID').item?.json?.suscriber_id }}",
+          "messageData": "=ultima_etiqueta: RECONSUMO_POSITIVO"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          464,
+          192
+        ],
+        "id": "1b577d3c-eb3e-4221-b269-c82e07d0b013",
+        "name": "Savemsj3",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "ff03d821-8083-4cff-af44-de25ca5ebe6f",
+                "leftValue": "={{ $now.hour }}",
+                "rightValue": 19,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          864,
+          192
+        ],
+        "id": "135c0c3f-b7f4-4d8f-85d3-4e06354f12eb",
+        "name": "If4"
+      },
+      {
+        "parameters": {
+          "resume": "specificTime",
+          "dateTime": "={{ $now.plus({days: 1}).set({hour: 10, minute: 0, second: 0}) }}"
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1120,
+          80
+        ],
+        "id": "7cb65eb9-fe6c-4555-aa52-10952e96be38",
+        "name": "Wait3",
+        "webhookId": "817c4653-c20e-4990-a511-e62a5fb0ea88"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body['Condición'] }}",
+                      "rightValue": "sin pedir",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      },
+                      "id": "5414e754-4d7d-4ade-b7b1-201a98c807f4"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "97c38eec-ebf2-454b-8253-2f15d8ec811a",
+                      "leftValue": "={{ $json.body['Condición'] }}",
+                      "rightValue": "4to pedido",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "6c77bd6a-38cf-4281-b962-2b765462f461",
+                      "leftValue": "={{ $json.body['Condición'] }}",
+                      "rightValue": "primer pedido",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          -1376,
+          160
+        ],
+        "id": "e178c7ac-30dd-4008-8995-212300581b53",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a0096901-d3d3-44be-a2a3-cc3e4a16d735",
+                "name": "body.nombres",
+                "value": "={{ $json.body.nombres }}",
+                "type": "string"
+              },
+              {
+                "id": "e963bdf6-ab31-44f2-81b3-601890b6e27b",
+                "name": "body.celular",
+                "value": "={{ $json.body.celular }}",
+                "type": "string"
+              },
+              {
+                "id": "3b38b4ef-3fb7-45a0-9da5-0d52370d07f3",
+                "name": "body.pais",
+                "value": "={{ $json.body.pais }}",
+                "type": "string"
+              },
+              {
+                "id": "b18e53d6-c270-44ad-b97f-d29446cf8f64",
+                "name": "Condición",
+                "value": "={{ $json.body['Condición'] }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -928,
+          768
+        ],
+        "id": "86afd9c0-64d5-46d8-922c-11a8303852eb",
+        "name": "Datos2"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Rol: Actúa como un experto en ingeniería de datos y n8n. Tu objetivo es procesar un array de información proporcionado en el contexto y extraer los valores específicos para mapearlos a un esquema JSON estructurado.\n\nTarea: > \n1. Analiza el array de entrada que se encuentra en tu base de conocimientos o mensaje de sistema.\n2. Localiza los campos correspondientes a: Teléfono (***Importante enviarlo sin símbolos como +***. Y solo agrega el numero de prefijo del país que tienes en la información de datos que pueden ser solo Colombia, Peru y Mexico), Nombre, y los estados de suscripción (SMS y Email).\n3. Genera exclusivamente el objeto JSON con el siguiente formato, asegurando que los tipos de datos sean correctos (strings para texto, booleans para los opt-in):\n\n\n{\n  \"phone\": \"+{{valor_extraído}}\", \n  \"first_name\": \"{{valor_extraído}}\", \n  \"has_opt_in_sms\": {{true/false}},\n  \"has_opt_in_email\": {{true/false}}\n}\n\n\n***Reglas de ORO***\n- Nunca debes incluir el \"+\" en el numero de teléfono\n- Siempre incluir en teléfono el código del Pais: Para Perú 51, Para Colombia 57 y Para Mexico 521\n- Si el Teléfono empieza con 9 es Peru siempre",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE: Datos (Puede venir como JSON string) ===\n{{ JSON.stringify($('Datos2').item.json) }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -736,
+          768
+        ],
+        "id": "1e15c8ad-4b10-477a-af8b-4b634040e2eb",
+        "name": "AI Agent2"
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"phone\": \"+5215555555555\", \n  \"first_name\": \"NombreCliente\", \n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -592,
+          1024
+        ],
+        "id": "6f2ddd84-801f-491f-9836-a4beeaa95c65",
+        "name": "Structured Output Parser2"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/subscriber/createSubscriber",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"first_name\": \"{{ $json.output.first_name }}\",\n  \"phone\": \"{{ $json.output.phone }}\",\n  \"consent_phrase\": \"acepto\",\n  \"has_opt_in_sms\": true,\n  \"has_opt_in_email\": true,\n  \"whatsapp_phone\": \"{{ $json.output.phone }}\",\n  \"optin_whatsapp\": true,\n  \"custom_fields\": {\n    \"14087783\": \"{{ $json.output.phone }}\"\n  }\n} ",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -464,
+          768
+        ],
+        "id": "7b23c702-d932-4f87-9088-9d607cd04d2f",
+        "name": "Obtener ID2",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "b6e51886-a159-47bb-a2d5-eba26883f513",
+                "name": "suscriber_id",
+                "value": "={{ $('Obtener ID2').item?.json?.body?.data?.id || $('Obtener Suscriber2').item?.json?.body?.data?.[0]?.id }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          256,
+          784
+        ],
+        "id": "0a7722da-eb9c-4a05-bcb4-55df307d9d89",
+        "name": "CID2"
+      },
+      {
+        "parameters": {
+          "url": "=https://api.backend.manzanaverde.la/api/3.0/n8n/get-user-data/?identifier={{ $('Datos2').item.json.body.celular }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          96,
+          784
+        ],
+        "id": "a37a97db-5fe4-4e56-8749-22d314b129f4",
+        "name": "Info Ventas2",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "1eKxy1CYVOxeopAP",
+            "name": "Token Backend"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "0dfe0768-c99b-4ce6-91ce-ac8d890b0813",
+                "leftValue": "={{ $json.body.status }}",
+                "rightValue": "=error",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -288,
+          768
+        ],
+        "id": "826a679c-7b69-4ea9-86ea-ac2e0489c40e",
+        "name": "If5"
+      },
+      {
+        "parameters": {
+          "url": "https://api.manychat.com/fb/subscriber/findByCustomField",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "field_id",
+                "value": "=14087783"
+              },
+              {
+                "name": "field_value",
+                "value": "={{ $('AI Agent2').item.json.output.phone }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -112,
+          640
+        ],
+        "id": "6a88ea30-bc18-4167-86dd-18a07e7a6d71",
+        "name": "Obtener Suscriber2",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID2').item?.json?.body?.data?.id || $('CID2').item?.json?.suscriber_id }}",
+          "messageData": "El cliente ha pedido 4 veces seguida y para esta ocación se le está ofreciendo un descuento del 20% en su 5to pedido"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          672,
+          784
+        ],
+        "id": "b4830469-441a-4483-8a3e-ffda41b9f13e",
+        "name": "Savemsj4",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendFlow",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "subscriber_id",
+                "value": "={{ $('CID2').item.json.suscriber_id }}"
+              },
+              {
+                "name": "flow_ns",
+                "value": "content20260401185724_087344"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "text"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1408,
+          800
+        ],
+        "id": "6c1a6dd7-7801-4d4c-8874-2ddffe604993",
+        "name": "Primer Mensaje2",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          -848,
+          1008
+        ],
+        "id": "fad390fc-bd98-46a6-b63b-a9de7ede4e48",
+        "name": "OpenAI Chat Model2",
+        "credentials": {
+          "openAiApi": {
+            "id": "tZPRyt9AN5iXl9s3",
+            "name": "Primer Pedido Seguimiento"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "=user:{{ $('Obtener ID2').item?.json?.body?.data?.id || $('CID2').item?.json?.suscriber_id }}",
+          "messageData": "=ultima_etiqueta: RECONSUMO_POSITIVO"
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          480,
+          784
+        ],
+        "id": "70c353de-1829-4f7b-aded-65e5a6df5af1",
+        "name": "Savemsj5",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "ff03d821-8083-4cff-af44-de25ca5ebe6f",
+                "leftValue": "={{ $now.hour }}",
+                "rightValue": 19,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          880,
+          784
+        ],
+        "id": "a05181ec-cb9e-4f89-8f58-596ae12919f2",
+        "name": "If6"
+      },
+      {
+        "parameters": {
+          "resume": "specificTime",
+          "dateTime": "={{ $now.plus({days: 1}).set({hour: 10, minute: 0, second: 0}) }}"
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1136,
+          672
+        ],
+        "id": "b131e5ce-a4bd-4fdd-b760-f581690f86cc",
+        "name": "Wait",
+        "webhookId": "817c4653-c20e-4990-a511-e62a5fb0ea88"
+      },
+      {
+        "parameters": {
+          "amount": 2,
+          "unit": "hours"
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1136,
+          880
+        ],
+        "id": "ed2a89b0-7b0b-4738-a46e-2f43cd36ec01",
+        "name": "Wait2",
+        "webhookId": "601e026f-a6f7-423b-8e2e-d293140c0ec5"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "699e7b91-0070-40d6-93ef-26fcf03b5baf",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1728,
+          1344
+        ],
+        "id": "3a050f13-b446-4929-9243-143c82d30a4f",
+        "name": "Webhook",
+        "webhookId": "699e7b91-0070-40d6-93ef-26fcf03b5baf"
+      }
+    ],
+    "connections": {
+      "Datos": {
+        "main": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent1": {
+        "main": [
+          [
+            {
+              "node": "Obtener ID1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser1": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener ID1": {
+        "main": [
+          [
+            {
+              "node": "If1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "CID1": {
+        "main": [
+          [
+            {
+              "node": "Savemsj",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Info Ventas1": {
+        "main": [
+          [
+            {
+              "node": "CID1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If1": {
+        "main": [
+          [
+            {
+              "node": "Obtener Suscriber1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Info Ventas1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener Suscriber1": {
+        "main": [
+          [
+            {
+              "node": "Info Ventas1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj1": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj": {
+        "main": [
+          [
+            {
+              "node": "Savemsj1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Wait1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Primer Mensaje1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait1": {
+        "main": [
+          [
+            {
+              "node": "Primer Mensaje1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Seguimiento": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Datos1": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Obtener ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener ID": {
+        "main": [
+          [
+            {
+              "node": "If3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "CID": {
+        "main": [
+          [
+            {
+              "node": "Savemsj3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Info Ventas": {
+        "main": [
+          [
+            {
+              "node": "CID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If3": {
+        "main": [
+          [
+            {
+              "node": "Obtener Suscriber",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Info Ventas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener Suscriber": {
+        "main": [
+          [
+            {
+              "node": "Info Ventas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj2": {
+        "main": [
+          [
+            {
+              "node": "If4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj3": {
+        "main": [
+          [
+            {
+              "node": "Savemsj2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If4": {
+        "main": [
+          [
+            {
+              "node": "Wait3",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Primer Mensaje",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait3": {
+        "main": [
+          [
+            {
+              "node": "Primer Mensaje",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Datos",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Datos1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Datos2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Datos2": {
+        "main": [
+          [
+            {
+              "node": "AI Agent2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent2": {
+        "main": [
+          [
+            {
+              "node": "Obtener ID2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser2": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent2",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener ID2": {
+        "main": [
+          [
+            {
+              "node": "If5",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "CID2": {
+        "main": [
+          [
+            {
+              "node": "Savemsj5",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Info Ventas2": {
+        "main": [
+          [
+            {
+              "node": "CID2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If5": {
+        "main": [
+          [
+            {
+              "node": "Obtener Suscriber2",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Info Ventas2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener Suscriber2": {
+        "main": [
+          [
+            {
+              "node": "Info Ventas2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj4": {
+        "main": [
+          [
+            {
+              "node": "If6",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model2": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent2",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Savemsj5": {
+        "main": [
+          [
+            {
+              "node": "Savemsj4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If6": {
+        "main": [
+          [
+            {
+              "node": "Wait",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Wait2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait": {
+        "main": [
+          [
+            {
+              "node": "Primer Mensaje2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait2": {
+        "main": [
+          [
+            {
+              "node": "Primer Mensaje2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Admin Manzana",
+    "name": "Version ec6d171c",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-01T19:04:03.877Z",
+        "id": 176,
+        "workflowId": "FS68xVacNF1DN9cd",
+        "versionId": "ec6d171c-b2c8-4617-b04c-f2ec6b229cfc",
+        "event": "activated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1008 @@
+{
+  "updatedAt": "2026-04-15T19:05:55.931Z",
+  "createdAt": "2026-01-27T15:25:28.280Z",
+  "id": "Il7WWfAJCElkQx3d",
+  "name": "Wallet",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -624,
+        -96
+      ],
+      "id": "c24783b6-a423-49f8-8a18-a3bf381fc304",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Usa esta herramienta para cargas los datos del pedido del cliente",
+        "method": "POST",
+        "url": "https://api.backend.manzanaverde.la/api/3.0/n8n/wallet/charge",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "customer_id",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            },
+            {
+              "name": "topup_amount",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', ``, 'string') }}"
+            },
+            {
+              "name": "transaction_code",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', ``, 'string') }}"
+            },
+            {
+              "name": "purchase_source",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters3_Value', ``, 'string') }}"
+            },
+            {
+              "name": "cashback_amount",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters4_Value', ``, 'string') }}"
+            },
+            {
+              "name": "country",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters5_Value', ``, 'string') }}"
+            },
+            {
+              "name": "purchase_type",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters6_Value', ``, 'string') }}"
+            },
+            {
+              "name": "plan_type",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters7_Value', ``, 'string') }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters8_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        848,
+        -272
+      ],
+      "id": "42b91825-2cc8-4870-af13-bb6e33e40354",
+      "name": "Wallet222",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "0BTbkTyT7hcOdkoF",
+          "name": "Pruebas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=🚨🚨🚨 REGLA DE ORO (LEER PRIMERO) 🚨🚨🚨\nSi 'Edit Fields' ya contiene `topup_amount` con un valor numérico válido > 0:\n→ USA ESE VALOR EXACTO como `topup_amount` final. NO lo re-derives desde datos/Pedido ni lo infiera de plan_type.\n→ Si además `plan_type` viene en Edit Fields con \"Plan Inicio/Ahorro/Flexible\" → mapea a \"inicio\"/\"ahorro\"/\"flexible\" y respeta ese plan.\n→ Si además `transaction_id` viene en Edit Fields → úsalo como `transaction_code`.\n→ Si además `purchase_type` = \"mensual\" en Edit Fields → purchase_type = \"mensual\" y plan_type es de plan (no \"inicio\" por defecto).\n\nEsta es una llamada EXPLÍCITA desde el agente padre. Los datos ya vienen validados. NO SOBRESCRIBAS.\n\n⛔ PROHIBIDO: devolver `topup_amount` distinto al que viene en Edit Fields cuando viene provisto.\n⛔ PROHIBIDO: devolver `plan_type` distinto al mapeado del valor de Edit Fields cuando viene provisto.\n\nSi falta topup_amount en Edit Fields → aplica las reglas de PASO 0 y PRIORIDADES abajo.\n\n🚨🚨🚨 FIN REGLA DE ORO 🚨🚨🚨\n\nActúa como un Experto en Procesamiento de Datos. Tu objetivo es construir un JSON final limpiando y unificando información de tres fuentes: 'Pedido', 'Edit Fields' y 'datos'.\n\n### PASO 0: DETERMINAR TIPO DE OPERACIÓN\n\nANTES de construir el JSON, determina si esta operación es un PEDIDO INDIVIDUAL o un PLAN analizando las fuentes disponibles:\n\n🟢 PEDIDO INDIVIDUAL: La instrucción del agente principal NO contiene \"PAGO_DE_PLAN\" Y no encuentras plan_type con valor \"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\" en NINGUNA fuente.\n→ purchase_type = \"diario\"\n→ plan_type = \"inicio\"\n\n🟣 PLAN: Se cumple AL MENOS UNA de estas condiciones:\n  - La instrucción del agente principal contiene \"PAGO_DE_PLAN\", O\n  - Encuentras un campo \"plan_type\" en 'Edit Fields' con valor \"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\", O\n  - Encuentras un campo \"plan_type\" en 'datos' con valor \"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\".\n→ purchase_type = \"mensual\"\n→ plan_type = según el plan elegido (ver reglas abajo)\n\n⚠️ PRIORIDAD: Si 'Edit Fields' contiene plan_type con valor válido (\"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\"), eso es EVIDENCIA SUFICIENTE de que la operación es un PLAN. No necesitas confirmación adicional de otras fuentes.\n\n### REGLAS DE EXTRACCIÓN Y PRIORIDAD CAMPO POR CAMPO:\n\nGenera un JSON único con las siguientes claves EN ESTE ORDEN EXACTO:\n\n1. customer_id:\n   Prioridad 1: Tómalo de 'Edit Fields'.\n   Prioridad 2: Si es 0 o vacío, búscalo dentro del objeto 'Pedido'.\n   Fallback: Si no existe, usa 0.\n\n2. purchase_source:\n   Analiza el texto en 'datos'. Si menciona \"Yape\", \"Plin\", o bancos, úsalo.\n   Default: Si no encuentras evidencia clara, coloca \"YAPE\".\n\n3. purchase_type:\n   🟢 Si PEDIDO INDIVIDUAL → \"diario\"\n   🟣 Si PLAN → \"mensual\"\n\n4. plan_type:\n   🟢 Si PEDIDO INDIVIDUAL → \"inicio\"\n   🟣 Si PLAN → Usa esta lógica en orden:\n     Prioridad 1: Mapea el valor encontrado en 'Edit Fields':\n       \"Plan Inicio\" → \"inicio\"\n       \"Plan Ahorro\" → \"ahorro\"\n       \"Plan Flexible\" → \"flexible\"\n     Prioridad 2: Mapea el valor encontrado en 'datos':\n       \"Plan Inicio\" → \"inicio\"\n       \"Plan Ahorro\" → \"ahorro\"\n       \"Plan Flexible\" → \"flexible\"\n     Prioridad 3 (INFERENCIA INVERSA): Si plan_type NO viene en 'Edit Fields' ni en 'datos' pero SÍ tienes topup_amount, deduce el plan del monto + país:\n       🇵🇪 Peru: 150 → \"inicio\" | 298 → \"ahorro\" | 390 → \"flexible\"\n       🇨🇴 Colombia: 150000 → \"inicio\" | 298000 → \"ahorro\" | 390000 → \"flexible\"\n       🇲🇽 Mexico: 959 → \"inicio\" | 1910 → \"ahorro\" | 2499 → \"flexible\"\n     ⛔ Si no puedes determinar el plan por ninguna vía, devuelve el JSON DE ERROR del final.\n\n5. topup_amount (Crítico):\n   🟢 PEDIDO INDIVIDUAL:\n     Prioridad 1: Busca \"total_amount\" dentro del objeto 'Pedido'.\n     Prioridad 2: Busca referencias a montos (ej. \"monto_pedido\", \"topup_amount\") en el texto de 'datos'.\n   🟣 PLAN:\n     Prioridad 1: Busca \"topup_amount\" en el texto de 'datos'.\n     Prioridad 2: Si ya tienes plan_type (de 'Edit Fields' o de 'datos'), determina el monto según la TABLA DE PRECIOS (ver abajo).\n     ⛔ Si no encuentras topup_amount NI plan_type en ninguna fuente, devuelve el JSON DE ERROR del final.\n   Regla: ***Siempre utilizar un valor numérico, no puede ser 0***.\n\n6. cashback_amount:\n   🟢 PEDIDO INDIVIDUAL: Busca \"cashback_amount\" dentro del objeto 'Pedido'. Si no existe, coloca 0.\n   🟣 PLAN (OBLIGATORIO ejecutar tool):\n   Prioridad 1: EJECUTA SIEMPRE la tool 'cashback' primero. De la respuesta, busca el valor de \"Saldo extra\" en la columna \"Beneficios Clave\" (ej. \"S/ 12 Saldo extra\", \"$12,000 Saldo extra\", \"$70 Saldo extra\"). Extrae SOLO el número del Saldo extra. IGNORA cualquier porcentaje de Cashback (ej. \"Cashback 3%\") — ese NO es el valor que necesitas.\n   ⛔ PROHIBIDO usar valores de memoria o hardcodeados sin haber ejecutado la tool primero.\n   Prioridad 2 (SOLO si la tool falla o no devuelve resultado): Usa estos valores de respaldo:\n     🇵🇪 Peru: Inicio = 0 | Ahorro = 12 | Flexible = 35\n     🇨🇴 Colombia: Inicio = 0 | Ahorro = 12000 | Flexible = 35000\n     🇲🇽 Mexico: Inicio = 0 | Ahorro = 70 | Flexible = 225\n   Si el plan es Inicio (sin saldo extra), coloca 0.\n\n7. country:\n   Prioridad 1: Tómalo de 'Edit Fields'.\n   Prioridad 2: Búscalo en 'Pedido'.\n   Default: \"Peru\".\n\n8. coupon:\n   Prioridad 1: Busca \"coupon\", \"cupon\", \"código de descuento\" o \"código promocional\" en el texto de 'datos'.\n   Prioridad 2: Busca \"coupon\" dentro del objeto 'Pedido'.\n   Default: Si no encuentras ningún cupón, coloca null (sin comillas).\n\n9. transaction_code:\n   Prioridad 1: Busca códigos de operación o transacción (ej. \"transaction_id\") en el texto de 'datos'.\n   Prioridad 2: Busca \"orderId\" o IDs similares en 'Pedido'.\n   Regla: Si no encuentras nada, coloca null (sin comillas).\n\n10. description:\n    *** VALOR FIJO OBLIGATORIO ***\n    Usa siempre: \"Recarga manual vía N8N\"\n    (No modifiques este texto).\n\n### TABLA DE PRECIOS POR PLAN Y PAÍS (Referencia):\n🇵🇪 Peru: Plan Inicio = 150 | Plan Ahorro = 298 | Plan Flexible = 390\n🇨🇴 Colombia: Plan Inicio = 150000 | Plan Ahorro = 298000 | Plan Flexible = 390000\n🇲🇽 Mexico: Plan Inicio = 959 | Plan Ahorro = 1910 | Plan Flexible = 2499\n\n### JSON DE ERROR (Usar cuando faltan datos críticos para PLAN):\nSi la operación es un PLAN y no puedes determinar plan_type ni topup_amount por ninguna vía, devuelve ÚNICAMENTE:\n{\"error\": \"DATOS_INSUFICIENTES\", \"message\": \"No se pudo determinar el plan_type ni el topup_amount. Se requiere al menos uno de estos datos en 'datos' o 'Edit Fields'.\"}\n\n### FORMATO DE RESPUESTA:\nDevuelve ÚNICAMENTE el objeto JSON válido con los campos en el orden indicado arriba. No incluyas explicaciones, ni bloques de código markdown, ni texto adicional.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE 1: PEDIDO (Puede venir como JSON string) ===\n{{ JSON.stringify($('Pedido').item.json) }}\n\n=== FUENTE 2: EDIT FIELDS (Datos maestros) ===\n{{ JSON.stringify($('Edit Fields').item.json) }}\n\n=== FUENTE 3: DATOS (Texto desordenado o arrays) ===\n{{ JSON.stringify($('datos').item.json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        480,
+        -96
+      ],
+      "id": "4ae514b3-9d2b-416d-ba5e-b64808393099",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f8b2750-8eb7-4585-8310-4ba16bc4c651",
+              "name": "customer_id",
+              "value": "={{ $json.customer_id }}",
+              "type": "string"
+            },
+            {
+              "id": "a9def8dd-c5ce-46fa-a32f-9e81a72c80d2",
+              "name": "estado_cliente",
+              "value": "={{ $json['ESTADO_DEL_CLIENTE'] }}",
+              "type": "string"
+            },
+            {
+              "id": "58bc359a-9f69-4ae7-8232-2d2647a53ea8",
+              "name": "country",
+              "value": "={{ $json.country }}",
+              "type": "string"
+            },
+            {
+              "id": "a2ecf23d-b75f-4c42-9f38-a06064c781f9",
+              "name": "telefono",
+              "value": "={{ $json.Telefono }}",
+              "type": "string"
+            },
+            {
+              "id": "9a82ca4c-8e26-4f61-bc50-7d84cf585daf",
+              "name": "suscriber_id",
+              "value": "={{ $json.suscriber_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c232d683-6986-481c-a99e-c6b09ff4f0ca",
+              "name": "plan_type",
+              "value": "={{ $json.plan_type }}",
+              "type": "string"
+            },
+            {
+              "id": "394078d3-414f-48fd-b1cc-65dd6d0b0b4d",
+              "name": "topup_amount",
+              "value": "={{ $json.topup_amount }}",
+              "type": "number"
+            },
+            {
+              "id": "6464de64-6c95-40bf-b6fb-3939cab40e63",
+              "name": "transaction_id",
+              "value": "={{ $json.transaction_id }}",
+              "type": "string"
+            },
+            {
+              "id": "6e62f5a8-8b94-4d8b-80e5-55903caa1cc2",
+              "name": "purchase_type",
+              "value": "={{ $json.purchase_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -96
+      ],
+      "id": "8a80f0c9-6ddf-4ea3-91db-1ae9cf1554dd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        128
+      ],
+      "id": "9601d0a4-8205-4b0b-9f0a-29f049bb0db8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "tZPRyt9AN5iXl9s3",
+          "name": "Primer Pedido Seguimiento"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  // 1. Identificamos el objeto que contiene tus datos\n  const datosInternos = item.json.query;\n\n  let resultado = {};\n\n  // 2. Lógica de procesamiento\n  if (typeof datosInternos === 'object' && datosInternos !== null) {\n    // CASO A: Ya es un objeto, lo usamos directamente\n    resultado = datosInternos;\n  } else if (typeof datosInternos === 'string') {\n    // CASO B: Es texto (string)\n    try {\n      // Intento 1: ¿Es un JSON válido? (Ej: '{\"id\": 123}')\n      resultado = JSON.parse(datosInternos);\n    } catch (e) {\n      // Intento 2: No es JSON válido, es texto plano (Ej: 'id: 123, pais: Peru')\n      // Limpiamos llaves {} si existen y separamos por comas\n      const textoLimpio = datosInternos.replace(/^{|}$/g, ''); \n      const pares = textoLimpio.split(',');\n\n      pares.forEach(par => {\n        // Separamos por el primer ':' que encontremos\n        const [clave, ...restoValor] = par.split(':');\n        \n        if (clave && restoValor.length > 0) {\n          // Limpiamos espacios en blanco alrededor\n          const key = clave.trim();\n          // Unimos el resto por si el valor contenía ':' (ej: una url o fecha)\n          const value = restoValor.join(':').trim();\n          \n          resultado[key] = value;\n        }\n      });\n    }\n  }\n\n  // 3. Devolvemos los datos limpios\n  return {\n    json: resultado\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -96
+      ],
+      "id": "7d5556a7-f6be-47d1-b6d4-02d434f6f142",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=Datos_{{ $json.telefono }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -96
+      ],
+      "id": "d5b63be6-796d-4e2d-a984-01cf9feca12c",
+      "name": "datos",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=pedido_{{ $('Edit Fields').item.json.suscriber_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -96
+      ],
+      "id": "a3ce84a8-ed8b-4f36-ad88-0de12969160d",
+      "name": "Pedido",
+      "credentials": {
+        "redis": {
+          "id": "1fmA2hXucBVKm50U",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"customer_id\": 98,\n  \"purchase_source\": \"YAPE\",\n  \"purchase_type\": \"diario\",\n  \"plan_type\": \"inicio\",\n  \"topup_amount\": 25.90,\n  \"cashback_amount\": 0,\n  \"country\": \"Peru\",\n  \"coupon\": null,\n  \"transaction_code\": \"YAP123456\",\n  \"description\": \"Recarga manual vía N8N\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        176
+      ],
+      "id": "d1b30be3-ec40-4eca-b7e7-2e68caba0282",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.backend.manzanaverde.la/api/3.0/n8n/wallet/charge",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json}}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1200,
+        -96
+      ],
+      "id": "db2ddd30-f81c-498d-96e7-b72fccb6de66",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "0BTbkTyT7hcOdkoF",
+          "name": "Pruebas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Uiliza esta herramienta para identificar el cashback correspondiente a cada tipo de plan según el país.",
+        "documentId": {
+          "__rl": true,
+          "value": "1CAAPAavuWHZNWlqsFNbie8lu6CWkYrz4BNKwSR2I_IU",
+          "mode": "list",
+          "cachedResultName": "Planes Reconsumos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CAAPAavuWHZNWlqsFNbie8lu6CWkYrz4BNKwSR2I_IU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CAAPAavuWHZNWlqsFNbie8lu6CWkYrz4BNKwSR2I_IU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "País",
+              "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Value', ``, 'string') }}"
+            },
+            {
+              "lookupColumn": "Nombre del Plan",
+              "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values1_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        112
+      ],
+      "id": "cc680c85-cc16-4dde-90f2-47771ef00c1a",
+      "name": "cashback",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Z1AUcdTGpKT7DTyL",
+          "name": "Google Sheets account 18"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Toma el input del nodo anterior\nconst raw = $input.first().json;\n\n// Si el dato viene como string (ej: desde AI Agent), parsearlo\nlet input = raw;\nif (typeof raw.output === \"string\") {\n  try {\n    input = JSON.parse(raw.output);\n  } catch (e) {\n    // Si no es JSON válido, intentar con el objeto directo\n    input = raw;\n  }\n} else if (typeof raw.output === \"object\" && raw.output !== null) {\n  input = raw.output;\n}\n\n// === VALIDACIÓN: Detectar JSON de error del AI Agent ===\nif (input.error === \"DATOS_INSUFICIENTES\") {\n  throw new Error(`AI Agent no pudo construir el JSON: ${input.message}`);\n}\n\n// === VALIDACIÓN CRÍTICA: topup_amount no puede ser 0 ni inválido ===\nconst topupRaw = Number(input.topup_amount);\nif (!topupRaw || topupRaw <= 0 || isNaN(topupRaw)) {\n  throw new Error(\n    `topup_amount inválido: \"${input.topup_amount}\". ` +\n    `El AI Agent no determinó el monto correctamente. ` +\n    `purchase_type=\"${input.purchase_type}\", plan_type=\"${input.plan_type}\"`\n  );\n}\n\n// Transformar campos al tipo correcto\nconst output = {\n  customer_id: Number(input.customer_id) || null,\n  purchase_source: input.purchase_source || null,\n  purchase_type: input.purchase_type || null,\n  plan_type: input.plan_type || null,\n  topup_amount: topupRaw,\n  cashback_amount: Number(input.cashback_amount) || 0,\n  country: input.country\n    ? input.country.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\")\n    : null,\n  coupon: input.coupon || null,\n  transaction_code: input.transaction_code || null,\n  description: input.description || null,\n};\n\nreturn [{ json: output }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -96
+      ],
+      "id": "c4248a5f-affc-4f08-bd2c-c3b60952085c",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "datos": {
+      "main": [
+        [
+          {
+            "node": "Pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedido": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cashback": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "versionId": "cc57ef59-cdb6-45ca-9c53-919f0be0192a",
+  "activeVersionId": "cc57ef59-cdb6-45ca-9c53-919f0be0192a",
+  "versionCounter": 37,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-27T15:25:28.280Z",
+      "createdAt": "2026-01-27T15:25:28.280Z",
+      "role": "workflow:owner",
+      "workflowId": "Il7WWfAJCElkQx3d",
+      "projectId": "hppye0tThsH5JKmN",
+      "project": {
+        "updatedAt": "2025-06-26T00:30:56.688Z",
+        "createdAt": "2025-06-26T00:29:43.524Z",
+        "id": "hppye0tThsH5JKmN",
+        "name": "Julio Mori <julio.mori1501@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "3575c3dd-d27c-46f3-9849-9bd95e462b95"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T19:05:55.933Z",
+    "createdAt": "2026-04-15T19:05:55.933Z",
+    "versionId": "cc57ef59-cdb6-45ca-9c53-919f0be0192a",
+    "workflowId": "Il7WWfAJCElkQx3d",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -624,
+          -96
+        ],
+        "id": "c24783b6-a423-49f8-8a18-a3bf381fc304",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Usa esta herramienta para cargas los datos del pedido del cliente",
+          "method": "POST",
+          "url": "https://api.backend.manzanaverde.la/api/3.0/n8n/wallet/charge",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "customer_id",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+              },
+              {
+                "name": "topup_amount",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', ``, 'string') }}"
+              },
+              {
+                "name": "transaction_code",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', ``, 'string') }}"
+              },
+              {
+                "name": "purchase_source",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters3_Value', ``, 'string') }}"
+              },
+              {
+                "name": "cashback_amount",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters4_Value', ``, 'string') }}"
+              },
+              {
+                "name": "country",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters5_Value', ``, 'string') }}"
+              },
+              {
+                "name": "purchase_type",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters6_Value', ``, 'string') }}"
+              },
+              {
+                "name": "plan_type",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters7_Value', ``, 'string') }}"
+              },
+              {
+                "name": "description",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters8_Value', ``, 'string') }}"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.3,
+        "position": [
+          848,
+          -272
+        ],
+        "id": "42b91825-2cc8-4870-af13-bb6e33e40354",
+        "name": "Wallet222",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "0BTbkTyT7hcOdkoF",
+            "name": "Pruebas"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=🚨🚨🚨 REGLA DE ORO (LEER PRIMERO) 🚨🚨🚨\nSi 'Edit Fields' ya contiene `topup_amount` con un valor numérico válido > 0:\n→ USA ESE VALOR EXACTO como `topup_amount` final. NO lo re-derives desde datos/Pedido ni lo infiera de plan_type.\n→ Si además `plan_type` viene en Edit Fields con \"Plan Inicio/Ahorro/Flexible\" → mapea a \"inicio\"/\"ahorro\"/\"flexible\" y respeta ese plan.\n→ Si además `transaction_id` viene en Edit Fields → úsalo como `transaction_code`.\n→ Si además `purchase_type` = \"mensual\" en Edit Fields → purchase_type = \"mensual\" y plan_type es de plan (no \"inicio\" por defecto).\n\nEsta es una llamada EXPLÍCITA desde el agente padre. Los datos ya vienen validados. NO SOBRESCRIBAS.\n\n⛔ PROHIBIDO: devolver `topup_amount` distinto al que viene en Edit Fields cuando viene provisto.\n⛔ PROHIBIDO: devolver `plan_type` distinto al mapeado del valor de Edit Fields cuando viene provisto.\n\nSi falta topup_amount en Edit Fields → aplica las reglas de PASO 0 y PRIORIDADES abajo.\n\n🚨🚨🚨 FIN REGLA DE ORO 🚨🚨🚨\n\nActúa como un Experto en Procesamiento de Datos. Tu objetivo es construir un JSON final limpiando y unificando información de tres fuentes: 'Pedido', 'Edit Fields' y 'datos'.\n\n### PASO 0: DETERMINAR TIPO DE OPERACIÓN\n\nANTES de construir el JSON, determina si esta operación es un PEDIDO INDIVIDUAL o un PLAN analizando las fuentes disponibles:\n\n🟢 PEDIDO INDIVIDUAL: La instrucción del agente principal NO contiene \"PAGO_DE_PLAN\" Y no encuentras plan_type con valor \"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\" en NINGUNA fuente.\n→ purchase_type = \"diario\"\n→ plan_type = \"inicio\"\n\n🟣 PLAN: Se cumple AL MENOS UNA de estas condiciones:\n  - La instrucción del agente principal contiene \"PAGO_DE_PLAN\", O\n  - Encuentras un campo \"plan_type\" en 'Edit Fields' con valor \"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\", O\n  - Encuentras un campo \"plan_type\" en 'datos' con valor \"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\".\n→ purchase_type = \"mensual\"\n→ plan_type = según el plan elegido (ver reglas abajo)\n\n⚠️ PRIORIDAD: Si 'Edit Fields' contiene plan_type con valor válido (\"Plan Inicio\", \"Plan Ahorro\" o \"Plan Flexible\"), eso es EVIDENCIA SUFICIENTE de que la operación es un PLAN. No necesitas confirmación adicional de otras fuentes.\n\n### REGLAS DE EXTRACCIÓN Y PRIORIDAD CAMPO POR CAMPO:\n\nGenera un JSON único con las siguientes claves EN ESTE ORDEN EXACTO:\n\n1. customer_id:\n   Prioridad 1: Tómalo de 'Edit Fields'.\n   Prioridad 2: Si es 0 o vacío, búscalo dentro del objeto 'Pedido'.\n   Fallback: Si no existe, usa 0.\n\n2. purchase_source:\n   Analiza el texto en 'datos'. Si menciona \"Yape\", \"Plin\", o bancos, úsalo.\n   Default: Si no encuentras evidencia clara, coloca \"YAPE\".\n\n3. purchase_type:\n   🟢 Si PEDIDO INDIVIDUAL → \"diario\"\n   🟣 Si PLAN → \"mensual\"\n\n4. plan_type:\n   🟢 Si PEDIDO INDIVIDUAL → \"inicio\"\n   🟣 Si PLAN → Usa esta lógica en orden:\n     Prioridad 1: Mapea el valor encontrado en 'Edit Fields':\n       \"Plan Inicio\" → \"inicio\"\n       \"Plan Ahorro\" → \"ahorro\"\n       \"Plan Flexible\" → \"flexible\"\n     Prioridad 2: Mapea el valor encontrado en 'datos':\n       \"Plan Inicio\" → \"inicio\"\n       \"Plan Ahorro\" → \"ahorro\"\n       \"Plan Flexible\" → \"flexible\"\n     Prioridad 3 (INFERENCIA INVERSA): Si plan_type NO viene en 'Edit Fields' ni en 'datos' pero SÍ tienes topup_amount, deduce el plan del monto + país:\n       🇵🇪 Peru: 150 → \"inicio\" | 298 → \"ahorro\" | 390 → \"flexible\"\n       🇨🇴 Colombia: 150000 → \"inicio\" | 298000 → \"ahorro\" | 390000 → \"flexible\"\n       🇲🇽 Mexico: 959 → \"inicio\" | 1910 → \"ahorro\" | 2499 → \"flexible\"\n     ⛔ Si no puedes determinar el plan por ninguna vía, devuelve el JSON DE ERROR del final.\n\n5. topup_amount (Crítico):\n   🟢 PEDIDO INDIVIDUAL:\n     Prioridad 1: Busca \"total_amount\" dentro del objeto 'Pedido'.\n     Prioridad 2: Busca referencias a montos (ej. \"monto_pedido\", \"topup_amount\") en el texto de 'datos'.\n   🟣 PLAN:\n     Prioridad 1: Busca \"topup_amount\" en el texto de 'datos'.\n     Prioridad 2: Si ya tienes plan_type (de 'Edit Fields' o de 'datos'), determina el monto según la TABLA DE PRECIOS (ver abajo).\n     ⛔ Si no encuentras topup_amount NI plan_type en ninguna fuente, devuelve el JSON DE ERROR del final.\n   Regla: ***Siempre utilizar un valor numérico, no puede ser 0***.\n\n6. cashback_amount:\n   🟢 PEDIDO INDIVIDUAL: Busca \"cashback_amount\" dentro del objeto 'Pedido'. Si no existe, coloca 0.\n   🟣 PLAN (OBLIGATORIO ejecutar tool):\n   Prioridad 1: EJECUTA SIEMPRE la tool 'cashback' primero. De la respuesta, busca el valor de \"Saldo extra\" en la columna \"Beneficios Clave\" (ej. \"S/ 12 Saldo extra\", \"$12,000 Saldo extra\", \"$70 Saldo extra\"). Extrae SOLO el número del Saldo extra. IGNORA cualquier porcentaje de Cashback (ej. \"Cashback 3%\") — ese NO es el valor que necesitas.\n   ⛔ PROHIBIDO usar valores de memoria o hardcodeados sin haber ejecutado la tool primero.\n   Prioridad 2 (SOLO si la tool falla o no devuelve resultado): Usa estos valores de respaldo:\n     🇵🇪 Peru: Inicio = 0 | Ahorro = 12 | Flexible = 35\n     🇨🇴 Colombia: Inicio = 0 | Ahorro = 12000 | Flexible = 35000\n     🇲🇽 Mexico: Inicio = 0 | Ahorro = 70 | Flexible = 225\n   Si el plan es Inicio (sin saldo extra), coloca 0.\n\n7. country:\n   Prioridad 1: Tómalo de 'Edit Fields'.\n   Prioridad 2: Búscalo en 'Pedido'.\n   Default: \"Peru\".\n\n8. coupon:\n   Prioridad 1: Busca \"coupon\", \"cupon\", \"código de descuento\" o \"código promocional\" en el texto de 'datos'.\n   Prioridad 2: Busca \"coupon\" dentro del objeto 'Pedido'.\n   Default: Si no encuentras ningún cupón, coloca null (sin comillas).\n\n9. transaction_code:\n   Prioridad 1: Busca códigos de operación o transacción (ej. \"transaction_id\") en el texto de 'datos'.\n   Prioridad 2: Busca \"orderId\" o IDs similares en 'Pedido'.\n   Regla: Si no encuentras nada, coloca null (sin comillas).\n\n10. description:\n    *** VALOR FIJO OBLIGATORIO ***\n    Usa siempre: \"Recarga manual vía N8N\"\n    (No modifiques este texto).\n\n### TABLA DE PRECIOS POR PLAN Y PAÍS (Referencia):\n🇵🇪 Peru: Plan Inicio = 150 | Plan Ahorro = 298 | Plan Flexible = 390\n🇨🇴 Colombia: Plan Inicio = 150000 | Plan Ahorro = 298000 | Plan Flexible = 390000\n🇲🇽 Mexico: Plan Inicio = 959 | Plan Ahorro = 1910 | Plan Flexible = 2499\n\n### JSON DE ERROR (Usar cuando faltan datos críticos para PLAN):\nSi la operación es un PLAN y no puedes determinar plan_type ni topup_amount por ninguna vía, devuelve ÚNICAMENTE:\n{\"error\": \"DATOS_INSUFICIENTES\", \"message\": \"No se pudo determinar el plan_type ni el topup_amount. Se requiere al menos uno de estos datos en 'datos' o 'Edit Fields'.\"}\n\n### FORMATO DE RESPUESTA:\nDevuelve ÚNICAMENTE el objeto JSON válido con los campos en el orden indicado arriba. No incluyas explicaciones, ni bloques de código markdown, ni texto adicional.",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Aquí tienes la información cruda para procesar:\n\n=== FUENTE 1: PEDIDO (Puede venir como JSON string) ===\n{{ JSON.stringify($('Pedido').item.json) }}\n\n=== FUENTE 2: EDIT FIELDS (Datos maestros) ===\n{{ JSON.stringify($('Edit Fields').item.json) }}\n\n=== FUENTE 3: DATOS (Texto desordenado o arrays) ===\n{{ JSON.stringify($('datos').item.json) }}"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          480,
+          -96
+        ],
+        "id": "4ae514b3-9d2b-416d-ba5e-b64808393099",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0f8b2750-8eb7-4585-8310-4ba16bc4c651",
+                "name": "customer_id",
+                "value": "={{ $json.customer_id }}",
+                "type": "string"
+              },
+              {
+                "id": "a9def8dd-c5ce-46fa-a32f-9e81a72c80d2",
+                "name": "estado_cliente",
+                "value": "={{ $json['ESTADO_DEL_CLIENTE'] }}",
+                "type": "string"
+              },
+              {
+                "id": "58bc359a-9f69-4ae7-8232-2d2647a53ea8",
+                "name": "country",
+                "value": "={{ $json.country }}",
+                "type": "string"
+              },
+              {
+                "id": "a2ecf23d-b75f-4c42-9f38-a06064c781f9",
+                "name": "telefono",
+                "value": "={{ $json.Telefono }}",
+                "type": "string"
+              },
+              {
+                "id": "9a82ca4c-8e26-4f61-bc50-7d84cf585daf",
+                "name": "suscriber_id",
+                "value": "={{ $json.suscriber_id }}",
+                "type": "string"
+              },
+              {
+                "id": "c232d683-6986-481c-a99e-c6b09ff4f0ca",
+                "name": "plan_type",
+                "value": "={{ $json.plan_type }}",
+                "type": "string"
+              },
+              {
+                "id": "394078d3-414f-48fd-b1cc-65dd6d0b0b4d",
+                "name": "topup_amount",
+                "value": "={{ $json.topup_amount }}",
+                "type": "number"
+              },
+              {
+                "id": "6464de64-6c95-40bf-b6fb-3939cab40e63",
+                "name": "transaction_id",
+                "value": "={{ $json.transaction_id }}",
+                "type": "string"
+              },
+              {
+                "id": "6e62f5a8-8b94-4d8b-80e5-55903caa1cc2",
+                "name": "purchase_type",
+                "value": "={{ $json.purchase_type }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -176,
+          -96
+        ],
+        "id": "8a80f0c9-6ddf-4ea3-91db-1ae9cf1554dd",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          384,
+          128
+        ],
+        "id": "9601d0a4-8205-4b0b-9f0a-29f049bb0db8",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "tZPRyt9AN5iXl9s3",
+            "name": "Primer Pedido Seguimiento"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "return $input.all().map(item => {\n  // 1. Identificamos el objeto que contiene tus datos\n  const datosInternos = item.json.query;\n\n  let resultado = {};\n\n  // 2. Lógica de procesamiento\n  if (typeof datosInternos === 'object' && datosInternos !== null) {\n    // CASO A: Ya es un objeto, lo usamos directamente\n    resultado = datosInternos;\n  } else if (typeof datosInternos === 'string') {\n    // CASO B: Es texto (string)\n    try {\n      // Intento 1: ¿Es un JSON válido? (Ej: '{\"id\": 123}')\n      resultado = JSON.parse(datosInternos);\n    } catch (e) {\n      // Intento 2: No es JSON válido, es texto plano (Ej: 'id: 123, pais: Peru')\n      // Limpiamos llaves {} si existen y separamos por comas\n      const textoLimpio = datosInternos.replace(/^{|}$/g, ''); \n      const pares = textoLimpio.split(',');\n\n      pares.forEach(par => {\n        // Separamos por el primer ':' que encontremos\n        const [clave, ...restoValor] = par.split(':');\n        \n        if (clave && restoValor.length > 0) {\n          // Limpiamos espacios en blanco alrededor\n          const key = clave.trim();\n          // Unimos el resto por si el valor contenía ':' (ej: una url o fecha)\n          const value = restoValor.join(':').trim();\n          \n          resultado[key] = value;\n        }\n      });\n    }\n  }\n\n  // 3. Devolvemos los datos limpios\n  return {\n    json: resultado\n  };\n});"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -400,
+          -96
+        ],
+        "id": "7d5556a7-f6be-47d1-b6d4-02d434f6f142",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "key": "=Datos_{{ $json.telefono }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          48,
+          -96
+        ],
+        "id": "d5b63be6-796d-4e2d-a984-01cf9feca12c",
+        "name": "datos",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "key": "=pedido_{{ $('Edit Fields').item.json.suscriber_id }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          256,
+          -96
+        ],
+        "id": "a3ce84a8-ed8b-4f36-ad88-0de12969160d",
+        "name": "Pedido",
+        "credentials": {
+          "redis": {
+            "id": "1fmA2hXucBVKm50U",
+            "name": "Redis account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"customer_id\": 98,\n  \"purchase_source\": \"YAPE\",\n  \"purchase_type\": \"diario\",\n  \"plan_type\": \"inicio\",\n  \"topup_amount\": 25.90,\n  \"cashback_amount\": 0,\n  \"country\": \"Peru\",\n  \"coupon\": null,\n  \"transaction_code\": \"YAP123456\",\n  \"description\": \"Recarga manual vía N8N\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          848,
+          176
+        ],
+        "id": "d1b30be3-ec40-4eca-b7e7-2e68caba0282",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.backend.manzanaverde.la/api/3.0/n8n/wallet/charge",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $json}}",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1200,
+          -96
+        ],
+        "id": "db2ddd30-f81c-498d-96e7-b72fccb6de66",
+        "name": "HTTP Request",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "0BTbkTyT7hcOdkoF",
+            "name": "Pruebas"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "descriptionType": "manual",
+          "toolDescription": "Uiliza esta herramienta para identificar el cashback correspondiente a cada tipo de plan según el país.",
+          "documentId": {
+            "__rl": true,
+            "value": "1CAAPAavuWHZNWlqsFNbie8lu6CWkYrz4BNKwSR2I_IU",
+            "mode": "list",
+            "cachedResultName": "Planes Reconsumos",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CAAPAavuWHZNWlqsFNbie8lu6CWkYrz4BNKwSR2I_IU/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Hoja 1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CAAPAavuWHZNWlqsFNbie8lu6CWkYrz4BNKwSR2I_IU/edit#gid=0"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "País",
+                "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Value', ``, 'string') }}"
+              },
+              {
+                "lookupColumn": "Nombre del Plan",
+                "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values1_Value', ``, 'string') }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheetsTool",
+        "typeVersion": 4.7,
+        "position": [
+          608,
+          112
+        ],
+        "id": "cc680c85-cc16-4dde-90f2-47771ef00c1a",
+        "name": "cashback",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "Z1AUcdTGpKT7DTyL",
+            "name": "Google Sheets account 18"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Toma el input del nodo anterior\nconst raw = $input.first().json;\n\n// Si el dato viene como string (ej: desde AI Agent), parsearlo\nlet input = raw;\nif (typeof raw.output === \"string\") {\n  try {\n    input = JSON.parse(raw.output);\n  } catch (e) {\n    // Si no es JSON válido, intentar con el objeto directo\n    input = raw;\n  }\n} else if (typeof raw.output === \"object\" && raw.output !== null) {\n  input = raw.output;\n}\n\n// === VALIDACIÓN: Detectar JSON de error del AI Agent ===\nif (input.error === \"DATOS_INSUFICIENTES\") {\n  throw new Error(`AI Agent no pudo construir el JSON: ${input.message}`);\n}\n\n// === VALIDACIÓN CRÍTICA: topup_amount no puede ser 0 ni inválido ===\nconst topupRaw = Number(input.topup_amount);\nif (!topupRaw || topupRaw <= 0 || isNaN(topupRaw)) {\n  throw new Error(\n    `topup_amount inválido: \"${input.topup_amount}\". ` +\n    `El AI Agent no determinó el monto correctamente. ` +\n    `purchase_type=\"${input.purchase_type}\", plan_type=\"${input.plan_type}\"`\n  );\n}\n\n// Transformar campos al tipo correcto\nconst output = {\n  customer_id: Number(input.customer_id) || null,\n  purchase_source: input.purchase_source || null,\n  purchase_type: input.purchase_type || null,\n  plan_type: input.plan_type || null,\n  topup_amount: topupRaw,\n  cashback_amount: Number(input.cashback_amount) || 0,\n  country: input.country\n    ? input.country.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\")\n    : null,\n  coupon: input.coupon || null,\n  transaction_code: input.transaction_code || null,\n  description: input.description || null,\n};\n\nreturn [{ json: output }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          976,
+          -96
+        ],
+        "id": "c4248a5f-affc-4f08-bd2c-c3b60952085c",
+        "name": "Code in JavaScript1"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "datos",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "datos": {
+        "main": [
+          [
+            {
+              "node": "Pedido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pedido": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          []
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "cashback": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript1": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Admin Manzana",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T19:05:55.992Z",
+        "id": 394,
+        "workflowId": "Il7WWfAJCElkQx3d",
+        "versionId": "cc57ef59-cdb6-45ca-9c53-919f0be0192a",
+        "event": "deactivated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      },
+      {
+        "createdAt": "2026-04-15T19:05:56.020Z",
+        "id": 395,
+        "workflowId": "Il7WWfAJCElkQx3d",
+        "versionId": "cc57ef59-cdb6-45ca-9c53-919f0be0192a",
+        "event": "activated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    ]
+  }
+}

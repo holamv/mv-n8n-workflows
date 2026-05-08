@@ -1,0 +1,362 @@
+{
+  "updatedAt": "2026-04-01T19:40:37.815Z",
+  "createdAt": "2026-03-31T18:26:50.900Z",
+  "id": "4g14aSPGtVfvGvqU",
+  "name": "Referidos",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "34c80e5a-1d1b-403d-ab70-a33c6a38fb6b",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1072,
+        -320
+      ],
+      "id": "283782e9-a11f-44bf-89b6-e8cae2100d3e",
+      "name": "Referidos",
+      "webhookId": "34c80e5a-1d1b-403d-ab70-a33c6a38fb6b"
+    },
+    {
+      "parameters": {
+        "url": "https://api.backend.manzanaverde.la/api/3.0/n8n/user/referral-link",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "identifier",
+              "value": "={{ $('Referidos').item.json.body.whatsapp_phone?.startsWith('+521') ? $('Referidos').item.json.body.whatsapp_phone.slice(4) : $('Referidos').item.json.body.whatsapp_phone?.slice(3) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -832,
+        -320
+      ],
+      "id": "007714f8-21a8-4fc3-be7b-6147c3528d73",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "6MnZA2D9iBP2h4gg",
+          "name": "X-N8N-API-Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "056c1ffc-1573-49c5-a273-88299a0ddf4c",
+              "name": "Mensaje",
+              "value": "={{ (() => {\n  // Obtenemos el teléfono desde el nodo 'Referidos' y nos aseguramos de que sea texto\n  const rawPhone = $('Referidos').item.json.body.whatsapp_phone;\n  const phone = rawPhone ? rawPhone.toString() : '';\n  \n  // Obtenemos la URL del nodo actual\n  const url = $json.data.referral_link || '';\n  \n  // Definimos el monto por defecto (Perú)\n  let monto = 'S/15.5'; \n  \n  // Evaluamos el código de país en el teléfono\n  if (phone.startsWith('+51') || phone.startsWith('51')) {\n    monto = 'S/15.5';\n  } else if (phone.startsWith('+52') || phone.startsWith('52')) { // Cubre +52 y +521\n    monto = '$99';\n  } else if (phone.startsWith('+57') || phone.startsWith('57')) {\n    monto = '$15500';\n  }\n  \n  // Retornamos el mensaje dinámico completo\n  return `¡Te regalo ${monto} para que pidas tu primera comida en Manzana Verde! 🎁  ¿Listo para comer rico y sano?🥙😍 ¡Regístrate para obtener tu recomendación nutricional y pide tu primera comida totalmente gratis! ${url} Recuerda que este link es exclusivo para ti, válido a través de nuestra app. 🍏`;\n})() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -576,
+        -320
+      ],
+      "id": "87fc41cd-8303-46c7-8f8f-ee411cb27856",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.manychat.com/fb/sending/sendContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"subscriber_id\": \"{{ $('Referidos').item.json.body.id }}\",\n  \"data\": {\n    \"version\": \"v2\",\n    \"content\": {\n      \"type\": \"whatsapp\",\n      \"messages\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"{{ $json.Mensaje }}\"\n        }\n      ]\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -352,
+        -320
+      ],
+      "id": "ef8cd97c-7085-4377-9c83-416adb361261",
+      "name": "Saludo Whatsapp3",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4H6yak6hmKmpq8UF",
+          "name": "API KEY MANNYCHAT"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Referidos": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Saludo Whatsapp3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "versionId": "2fea94b6-d0bb-49f6-bd2d-01ab9a0ab984",
+  "activeVersionId": "2fea94b6-d0bb-49f6-bd2d-01ab9a0ab984",
+  "versionCounter": 95,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-31T18:26:50.900Z",
+      "createdAt": "2026-03-31T18:26:50.900Z",
+      "role": "workflow:owner",
+      "workflowId": "4g14aSPGtVfvGvqU",
+      "projectId": "aSJN5OrkeuDG7MLy",
+      "project": {
+        "updatedAt": "2025-09-25T21:42:21.465Z",
+        "createdAt": "2025-06-20T20:44:35.862Z",
+        "id": "aSJN5OrkeuDG7MLy",
+        "name": "Admin Manzana <admin@manzanaverde.la>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-01T19:41:33.406Z",
+    "createdAt": "2026-04-01T19:40:37.817Z",
+    "versionId": "2fea94b6-d0bb-49f6-bd2d-01ab9a0ab984",
+    "workflowId": "4g14aSPGtVfvGvqU",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "34c80e5a-1d1b-403d-ab70-a33c6a38fb6b",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1072,
+          -320
+        ],
+        "id": "283782e9-a11f-44bf-89b6-e8cae2100d3e",
+        "name": "Referidos",
+        "webhookId": "34c80e5a-1d1b-403d-ab70-a33c6a38fb6b"
+      },
+      {
+        "parameters": {
+          "url": "https://api.backend.manzanaverde.la/api/3.0/n8n/user/referral-link",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "identifier",
+                "value": "={{ $('Referidos').item.json.body.whatsapp_phone?.startsWith('+521') ? $('Referidos').item.json.body.whatsapp_phone.slice(4) : $('Referidos').item.json.body.whatsapp_phone?.slice(3) }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -832,
+          -320
+        ],
+        "id": "007714f8-21a8-4fc3-be7b-6147c3528d73",
+        "name": "HTTP Request",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "6MnZA2D9iBP2h4gg",
+            "name": "X-N8N-API-Key"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "056c1ffc-1573-49c5-a273-88299a0ddf4c",
+                "name": "Mensaje",
+                "value": "={{ (() => {\n  // Obtenemos el teléfono desde el nodo 'Referidos' y nos aseguramos de que sea texto\n  const rawPhone = $('Referidos').item.json.body.whatsapp_phone;\n  const phone = rawPhone ? rawPhone.toString() : '';\n  \n  // Obtenemos la URL del nodo actual\n  const url = $json.data.referral_link || '';\n  \n  // Definimos el monto por defecto (Perú)\n  let monto = 'S/15.5'; \n  \n  // Evaluamos el código de país en el teléfono\n  if (phone.startsWith('+51') || phone.startsWith('51')) {\n    monto = 'S/15.5';\n  } else if (phone.startsWith('+52') || phone.startsWith('52')) { // Cubre +52 y +521\n    monto = '$99';\n  } else if (phone.startsWith('+57') || phone.startsWith('57')) {\n    monto = '$15500';\n  }\n  \n  // Retornamos el mensaje dinámico completo\n  return `¡Te regalo ${monto} para que pidas tu primera comida en Manzana Verde! 🎁  ¿Listo para comer rico y sano?🥙😍 ¡Regístrate para obtener tu recomendación nutricional y pide tu primera comida totalmente gratis! ${url} Recuerda que este link es exclusivo para ti, válido a través de nuestra app. 🍏`;\n})() }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -576,
+          -320
+        ],
+        "id": "87fc41cd-8303-46c7-8f8f-ee411cb27856",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.manychat.com/fb/sending/sendContent",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"subscriber_id\": \"{{ $('Referidos').item.json.body.id }}\",\n  \"data\": {\n    \"version\": \"v2\",\n    \"content\": {\n      \"type\": \"whatsapp\",\n      \"messages\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"{{ $json.Mensaje }}\"\n        }\n      ]\n    }\n  }\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -352,
+          -320
+        ],
+        "id": "ef8cd97c-7085-4377-9c83-416adb361261",
+        "name": "Saludo Whatsapp3",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "4H6yak6hmKmpq8UF",
+            "name": "API KEY MANNYCHAT"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Referidos": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Saludo Whatsapp3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Admin Manzana",
+    "name": "Version 2fea94b6",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-01T19:41:33.403Z",
+        "id": 179,
+        "workflowId": "4g14aSPGtVfvGvqU",
+        "versionId": "2fea94b6-d0bb-49f6-bd2d-01ab9a0ab984",
+        "event": "activated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    ]
+  }
+}

@@ -1,0 +1,316 @@
+{
+  "updatedAt": "2026-04-08T21:39:14.192Z",
+  "createdAt": "2026-01-07T20:19:53.272Z",
+  "id": "2BqhLRHKtIgshEDy",
+  "name": "Obtener dirección",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -680,
+        -64
+      ],
+      "id": "0a9e240c-7803-4957-a5ce-a8222f65f790",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst query = $input.first().json.query || '';\nconst countryInput = ($input.first().json.country || '').toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n\n// Location bias centers and defaults by country/city\nconst biasMap = {\n  peru_lima:    { bias: 'circle:30000@-12.06,-77.04', country: 'Peru', city: 'Lima' },\n  peru_piura:   { bias: 'circle:15000@-5.19,-80.63',  country: 'Peru', city: 'Piura' },\n  colombia:     { bias: 'circle:30000@4.65,-74.05',    country: 'Colombia', city: 'Bogota' },\n  mexico_cdmx:  { bias: 'circle:30000@19.43,-99.13',   country: 'Mexico', city: 'Ciudad de Mexico' },\n  mexico_gdl:   { bias: 'circle:30000@20.67,-103.35',  country: 'Mexico', city: 'Guadalajara' },\n  mexico_mty:   { bias: 'circle:30000@25.67,-100.31',  country: 'Mexico', city: 'Monterrey' },\n};\n\n// Peru district keywords\nconst peruKw = [\n  'lima','callao','miraflores','surco','santiago de surco','san isidro',\n  'san miguel','san borja','la molina','barranco','chorrillos','jesus maria',\n  'lince','magdalena','pueblo libre','brena','rimac','san martin de porres',\n  'los olivos','comas','independencia','carabayllo','ate','santa anita',\n  'el agustino','la victoria','san juan de lurigancho','sjl',\n  'villa el salvador','villa maria del triunfo','san juan de miraflores',\n  'lurin','pachacamac','cieneguilla','chaclacayo','chosica','puente piedra',\n  'ancon','bellavista','la perla','ventanilla','mi peru','la punta',\n  'cercado de lima','san luis','surquillo','breña','miramar'\n];\nconst colombiaKw = [\n  'bogota','colombia','chapinero','usaquen','suba','engativa','fontibon',\n  'kennedy','teusaquillo','candelaria','santa fe','bosa','tunjuelito',\n  'ciudad bolivar','rafael uribe','antonio narino','puente aranda',\n  'barrios unidos','martires'\n];\nconst mexicoGdlKw = ['guadalajara','zapopan','tlaquepaque','tonala'];\nconst mexicoMtyKw = ['monterrey','san pedro garza','san nicolas','apodaca','escobedo'];\nconst mexicoKw = [\n  'cdmx','ciudad de mexico','polanco','condesa','roma norte','coyoacan',\n  'benito juarez','miguel hidalgo','azcapotzalco','alvaro obregon',\n  'cuauhtemoc','iztapalapa','iztacalco','gustavo a. madero','xochimilco',\n  'tlahuac','milpa alta','cuajimalpa','magdalena contreras','huixquilucan',\n  'ecatepec','naucalpan','tlalnepantla','mexico'\n];\n\nlet detected = null;\nconst q = query.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n\n// 1. Explicit country parameter\nif (countryInput) {\n  if (countryInput.includes('peru') || countryInput === 'pe') {\n    detected = q.includes('piura') ? biasMap.peru_piura : biasMap.peru_lima;\n  } else if (countryInput.includes('colombia') || countryInput === 'co') {\n    detected = biasMap.colombia;\n  } else if (countryInput.includes('mexico') || countryInput === 'mx') {\n    if (mexicoGdlKw.some(k => q.includes(k))) detected = biasMap.mexico_gdl;\n    else if (mexicoMtyKw.some(k => q.includes(k))) detected = biasMap.mexico_mty;\n    else detected = biasMap.mexico_cdmx;\n  }\n}\n\n// 2. Detect from query keywords\nif (!detected) {\n  const peruSpecific = peruKw.filter(k => !['peru'].includes(k));\n  if (peruSpecific.some(k => q.includes(k))) {\n    detected = q.includes('piura') ? biasMap.peru_piura : biasMap.peru_lima;\n  } else if (colombiaKw.some(k => q.includes(k))) {\n    detected = biasMap.colombia;\n  } else if (mexicoGdlKw.some(k => q.includes(k))) {\n    detected = biasMap.mexico_gdl;\n  } else if (mexicoMtyKw.some(k => q.includes(k))) {\n    detected = biasMap.mexico_mty;\n  } else if (mexicoKw.some(k => q.includes(k))) {\n    detected = biasMap.mexico_cdmx;\n  } else if (q.includes('peru')) {\n    detected = biasMap.peru_lima;\n  } else if (q.includes('mexico')) {\n    detected = biasMap.mexico_cdmx;\n  }\n}\n\n// Default to Peru/Lima if nothing detected (most common)\nif (!detected) {\n  detected = biasMap.peru_lima;\n}\n\nreturn [{\n  json: {\n    query: query.trim(),\n    locationBias: detected.bias,\n    detectedCountry: detected.country,\n    detectedCity: detected.city,\n  }\n}];\n",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        -64
+      ],
+      "id": "a1b2c3d4-prep-query-node-0001",
+      "name": "Preparar Query"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "inputtype",
+              "value": "textquery"
+            },
+            {
+              "name": "fields",
+              "value": "formatted_address,geometry"
+            },
+            {
+              "name": "locationbias",
+              "value": "={{ $json.locationBias }}"
+            },
+            {
+              "name": "key",
+              "value": "AIzaSyBKPw7xzGCnH3_PrTy7VxePVs3WqD6StHg"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -200,
+        -64
+      ],
+      "id": "187af27e-20c8-4180-8aa3-ca42f5917190",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $input.first().json;\nconst candidates = input.candidates || [];\n// Get country/city from Preparar Query node (not from HTTP response)\nconst prepData = $('Preparar Query').first().json;\nconst detectedCountry = prepData.detectedCountry || '';\nconst detectedCity = prepData.detectedCity || '';\n\nif (!candidates.length) {\n  return [{\n    json: {\n      latitud: '',\n      longitud: '',\n      format_adress: '',\n      Cuidad: detectedCity,\n      'País': detectedCountry,\n      error: 'No geocoding results'\n    }\n  }];\n}\n\nconst result = candidates[0];\nconst lat = result.geometry?.location?.lat || '';\nconst lng = result.geometry?.location?.lng || '';\nconst formattedAddress = result.formatted_address || '';\n\n// Parse city from formatted address\n// Patterns: \"Street, District PostalCode, Country\"\n//           \"Street, District, City, State, Country\"\nconst parts = formattedAddress.split(', ');\nconst country = parts.length > 1 ? parts[parts.length - 1] : detectedCountry;\n\n// Extract city/district: second-to-last part (remove postal code if present)\nlet ciudad = detectedCity;\nif (parts.length >= 3) {\n  // Get the part just before the country\n  let cityPart = parts[parts.length - 2];\n  // Remove postal code patterns (5 digits, or \"CDMX\", state abbreviations)\n  cityPart = cityPart.replace(/\\b\\d{4,6}\\b/g, '').trim();\n  // For Mexico, the state abbreviation might be the last part\n  if (['CDMX', 'Jal.', 'N.L.', 'Edomex'].some(s => cityPart.includes(s))) {\n    // Look one level deeper\n    if (parts.length >= 4) {\n      cityPart = parts[parts.length - 3].replace(/\\b\\d{4,6}\\b/g, '').trim();\n    }\n  }\n  if (cityPart) ciudad = cityPart;\n}\n\nreturn [{\n  json: {\n    latitud: String(lat),\n    longitud: String(lng),\n    format_adress: formattedAddress,\n    Cuidad: ciudad,\n    'País': country,\n  }\n}];\n",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        40,
+        -64
+      ],
+      "id": "e5f6g7h8-extract-comp-0002",
+      "name": "Extraer Componentes"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Preparar Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Query": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extraer Componentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "versionId": "67c6cd6e-5ca6-4a26-8af5-867f66b6dee9",
+  "activeVersionId": "67c6cd6e-5ca6-4a26-8af5-867f66b6dee9",
+  "versionCounter": 41,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-07T20:19:53.272Z",
+      "createdAt": "2026-01-07T20:19:53.272Z",
+      "role": "workflow:owner",
+      "workflowId": "2BqhLRHKtIgshEDy",
+      "projectId": "hppye0tThsH5JKmN",
+      "project": {
+        "updatedAt": "2025-06-26T00:30:56.688Z",
+        "createdAt": "2025-06-26T00:29:43.524Z",
+        "id": "hppye0tThsH5JKmN",
+        "name": "Julio Mori <julio.mori1501@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "3575c3dd-d27c-46f3-9849-9bd95e462b95"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-08T21:39:14.193Z",
+    "createdAt": "2026-04-08T21:39:14.193Z",
+    "versionId": "67c6cd6e-5ca6-4a26-8af5-867f66b6dee9",
+    "workflowId": "2BqhLRHKtIgshEDy",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -680,
+          -64
+        ],
+        "id": "0a9e240c-7803-4957-a5ce-a8222f65f790",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst query = $input.first().json.query || '';\nconst countryInput = ($input.first().json.country || '').toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n\n// Location bias centers and defaults by country/city\nconst biasMap = {\n  peru_lima:    { bias: 'circle:30000@-12.06,-77.04', country: 'Peru', city: 'Lima' },\n  peru_piura:   { bias: 'circle:15000@-5.19,-80.63',  country: 'Peru', city: 'Piura' },\n  colombia:     { bias: 'circle:30000@4.65,-74.05',    country: 'Colombia', city: 'Bogota' },\n  mexico_cdmx:  { bias: 'circle:30000@19.43,-99.13',   country: 'Mexico', city: 'Ciudad de Mexico' },\n  mexico_gdl:   { bias: 'circle:30000@20.67,-103.35',  country: 'Mexico', city: 'Guadalajara' },\n  mexico_mty:   { bias: 'circle:30000@25.67,-100.31',  country: 'Mexico', city: 'Monterrey' },\n};\n\n// Peru district keywords\nconst peruKw = [\n  'lima','callao','miraflores','surco','santiago de surco','san isidro',\n  'san miguel','san borja','la molina','barranco','chorrillos','jesus maria',\n  'lince','magdalena','pueblo libre','brena','rimac','san martin de porres',\n  'los olivos','comas','independencia','carabayllo','ate','santa anita',\n  'el agustino','la victoria','san juan de lurigancho','sjl',\n  'villa el salvador','villa maria del triunfo','san juan de miraflores',\n  'lurin','pachacamac','cieneguilla','chaclacayo','chosica','puente piedra',\n  'ancon','bellavista','la perla','ventanilla','mi peru','la punta',\n  'cercado de lima','san luis','surquillo','breña','miramar'\n];\nconst colombiaKw = [\n  'bogota','colombia','chapinero','usaquen','suba','engativa','fontibon',\n  'kennedy','teusaquillo','candelaria','santa fe','bosa','tunjuelito',\n  'ciudad bolivar','rafael uribe','antonio narino','puente aranda',\n  'barrios unidos','martires'\n];\nconst mexicoGdlKw = ['guadalajara','zapopan','tlaquepaque','tonala'];\nconst mexicoMtyKw = ['monterrey','san pedro garza','san nicolas','apodaca','escobedo'];\nconst mexicoKw = [\n  'cdmx','ciudad de mexico','polanco','condesa','roma norte','coyoacan',\n  'benito juarez','miguel hidalgo','azcapotzalco','alvaro obregon',\n  'cuauhtemoc','iztapalapa','iztacalco','gustavo a. madero','xochimilco',\n  'tlahuac','milpa alta','cuajimalpa','magdalena contreras','huixquilucan',\n  'ecatepec','naucalpan','tlalnepantla','mexico'\n];\n\nlet detected = null;\nconst q = query.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\n\n// 1. Explicit country parameter\nif (countryInput) {\n  if (countryInput.includes('peru') || countryInput === 'pe') {\n    detected = q.includes('piura') ? biasMap.peru_piura : biasMap.peru_lima;\n  } else if (countryInput.includes('colombia') || countryInput === 'co') {\n    detected = biasMap.colombia;\n  } else if (countryInput.includes('mexico') || countryInput === 'mx') {\n    if (mexicoGdlKw.some(k => q.includes(k))) detected = biasMap.mexico_gdl;\n    else if (mexicoMtyKw.some(k => q.includes(k))) detected = biasMap.mexico_mty;\n    else detected = biasMap.mexico_cdmx;\n  }\n}\n\n// 2. Detect from query keywords\nif (!detected) {\n  const peruSpecific = peruKw.filter(k => !['peru'].includes(k));\n  if (peruSpecific.some(k => q.includes(k))) {\n    detected = q.includes('piura') ? biasMap.peru_piura : biasMap.peru_lima;\n  } else if (colombiaKw.some(k => q.includes(k))) {\n    detected = biasMap.colombia;\n  } else if (mexicoGdlKw.some(k => q.includes(k))) {\n    detected = biasMap.mexico_gdl;\n  } else if (mexicoMtyKw.some(k => q.includes(k))) {\n    detected = biasMap.mexico_mty;\n  } else if (mexicoKw.some(k => q.includes(k))) {\n    detected = biasMap.mexico_cdmx;\n  } else if (q.includes('peru')) {\n    detected = biasMap.peru_lima;\n  } else if (q.includes('mexico')) {\n    detected = biasMap.mexico_cdmx;\n  }\n}\n\n// Default to Peru/Lima if nothing detected (most common)\nif (!detected) {\n  detected = biasMap.peru_lima;\n}\n\nreturn [{\n  json: {\n    query: query.trim(),\n    locationBias: detected.bias,\n    detectedCountry: detected.country,\n    detectedCity: detected.city,\n  }\n}];\n",
+          "mode": "runOnceForAllItems"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -440,
+          -64
+        ],
+        "id": "a1b2c3d4-prep-query-node-0001",
+        "name": "Preparar Query"
+      },
+      {
+        "parameters": {
+          "url": "=https://maps.googleapis.com/maps/api/place/findplacefromtext/json",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "input",
+                "value": "={{ $json.query }}"
+              },
+              {
+                "name": "inputtype",
+                "value": "textquery"
+              },
+              {
+                "name": "fields",
+                "value": "formatted_address,geometry"
+              },
+              {
+                "name": "locationbias",
+                "value": "={{ $json.locationBias }}"
+              },
+              {
+                "name": "key",
+                "value": "AIzaSyBKPw7xzGCnH3_PrTy7VxePVs3WqD6StHg"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "neverError": true,
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -200,
+          -64
+        ],
+        "id": "187af27e-20c8-4180-8aa3-ca42f5917190",
+        "name": "HTTP Request"
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst input = $input.first().json;\nconst candidates = input.candidates || [];\n// Get country/city from Preparar Query node (not from HTTP response)\nconst prepData = $('Preparar Query').first().json;\nconst detectedCountry = prepData.detectedCountry || '';\nconst detectedCity = prepData.detectedCity || '';\n\nif (!candidates.length) {\n  return [{\n    json: {\n      latitud: '',\n      longitud: '',\n      format_adress: '',\n      Cuidad: detectedCity,\n      'País': detectedCountry,\n      error: 'No geocoding results'\n    }\n  }];\n}\n\nconst result = candidates[0];\nconst lat = result.geometry?.location?.lat || '';\nconst lng = result.geometry?.location?.lng || '';\nconst formattedAddress = result.formatted_address || '';\n\n// Parse city from formatted address\n// Patterns: \"Street, District PostalCode, Country\"\n//           \"Street, District, City, State, Country\"\nconst parts = formattedAddress.split(', ');\nconst country = parts.length > 1 ? parts[parts.length - 1] : detectedCountry;\n\n// Extract city/district: second-to-last part (remove postal code if present)\nlet ciudad = detectedCity;\nif (parts.length >= 3) {\n  // Get the part just before the country\n  let cityPart = parts[parts.length - 2];\n  // Remove postal code patterns (5 digits, or \"CDMX\", state abbreviations)\n  cityPart = cityPart.replace(/\\b\\d{4,6}\\b/g, '').trim();\n  // For Mexico, the state abbreviation might be the last part\n  if (['CDMX', 'Jal.', 'N.L.', 'Edomex'].some(s => cityPart.includes(s))) {\n    // Look one level deeper\n    if (parts.length >= 4) {\n      cityPart = parts[parts.length - 3].replace(/\\b\\d{4,6}\\b/g, '').trim();\n    }\n  }\n  if (cityPart) ciudad = cityPart;\n}\n\nreturn [{\n  json: {\n    latitud: String(lat),\n    longitud: String(lng),\n    format_adress: formattedAddress,\n    Cuidad: ciudad,\n    'País': country,\n  }\n}];\n",
+          "mode": "runOnceForAllItems"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          40,
+          -64
+        ],
+        "id": "e5f6g7h8-extract-comp-0002",
+        "name": "Extraer Componentes"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Preparar Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Preparar Query": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Extraer Componentes",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Admin Manzana",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-08T21:39:14.242Z",
+        "id": 274,
+        "workflowId": "2BqhLRHKtIgshEDy",
+        "versionId": "67c6cd6e-5ca6-4a26-8af5-867f66b6dee9",
+        "event": "deactivated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      },
+      {
+        "createdAt": "2026-04-08T21:39:14.258Z",
+        "id": 275,
+        "workflowId": "2BqhLRHKtIgshEDy",
+        "versionId": "67c6cd6e-5ca6-4a26-8af5-867f66b6dee9",
+        "event": "activated",
+        "userId": "38cafb6e-c105-4620-831b-7721f878db63"
+      }
+    ]
+  }
+}

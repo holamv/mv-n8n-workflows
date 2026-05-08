@@ -1,0 +1,111 @@
+# ===== Secrets & local config =====
+.env
+.env.local
+.mcp.json
+*.key
+*.pem
+
+# ===== Caches & runtime state =====
+node_modules/
+processed_msg_ids.json
+*.log
+*.tmp
+
+# ===== Backups (contain workflow state with credential IDs and historical execs) =====
+*backup*.json
+*_backup_*.json
+atc_backup_*.json
+audit_backup_*.json
+bridge_backup_*.json
+base_lead_id_backup.json
+deactivated_heavy.json
+atc_current*.json
+atc_payload*.json
+audit_workflow.json
+
+# ===== Execution traces (contain phone numbers, names, message bodies) =====
+exec_*.json
+missing_phones_traced.json
+audit_local_result.json
+UserscheveAppData*.json
+
+# ===== Local archive folder (historical deploys) =====
+_archive/
+backups/
+audit_discord_n8n/
+
+# ===== Scripts pendientes de migrar a env-based auth =====
+# Estos contienen JWT hardcoded — mover a scripts/ tras reemplazar con process.env.N8N_API_KEY
+audit_50.js
+audit_code.js
+bridge_extract.js
+bridge_update_cursors.js
+check_calculadora.js
+check_case.js
+check_planes_data.js
+cleanup_logsbot.js
+cleanup_zombies.js
+cleanup_zombies_v2.js
+compare_4h.js
+compare_discord_vs_bridge.js
+delete_queue.js
+delete_queue_v2.js
+deploy_*.js
+diagnose_pcl_400.js
+fetch_atc.js
+fetch_current_workflow.js
+fetch_wf.js
+fix_audit_workflow.js
+fix_bridge_cursor.js
+fix_bridge_robust.js
+full_audit.js
+hard_freeze_pcl.js
+inspect_pcl_primer_mensaje.js
+list_workflows.js
+lookup_phone.js
+monitor_new.js
+monitor_reconsumos.js
+monitor_wallet_errors.js
+optimize_all_prompts.js
+optimize_audit_code.js
+plan_b_and_extract_prompt.js
+prompt_intencion_*.txt
+replay_last_hour.js
+replay_missing_leads.js
+reset_bridge_cursor.js
+retry_6_fails.js
+run_audit_local.js
+stress_test.js
+test_manychat_flows.js
+test_manychat_subscriber.js
+trace_missing_phones.js
+verify_5h.js
+verify_all.js
+verify_bridge_e2e.js
+verify_missing_in_n8n.js
+verify_recovery_channels.js
+
+# ===== OS / IDE =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ===== Claude Code local state =====
+.claude/
+
+# ===== Sanitizer one-shot =====
+sanitize_workflows.js
+
+# ===== Workflow JSONs en raiz (la version canonica vive en workflows/) =====
+# Estos siguen aqui porque los scripts legacy los usan; no se commitean.
+atc_workflow_optimized.json
+bridge_workflow.json
+primer_contacto_leads.json
+wallet_workflow.json
+wf_leads.json
+wf_obtener_direccion.json
+wf_primer_pedido.json
+wf_referidos.json
+wf_seguimiento14.json
+
