@@ -1,0 +1,199 @@
+=== FULL HTML ===
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Únete al equipo de Manzana Verde - Closer de Ventas Remotas</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #4CAF50; /* Verde Manzana */
+            color: white;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .hero h2 {
+            margin-top: 10px;
+            font-weight: 400;
+            font-size: 1.5em;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 20px auto 0;
+        }
+
+        .job-details {
+            padding: 30px;
+        }
+
+        .job-details h3 {
+            color: #2e7d32; /* Verde oscuro */
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            font-size: 1.6em;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .job-details ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .job-details ul li {
+            background: url('https://img.icons8.com/color/16/000000/checked-2.png') no-repeat left center;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-item {
+            background-color: #e8f5e9; /* Verde muy claro */
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .grid-item strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #2e7d32;
+            font-size: 1.1em;
+        }
+
+        .apply-section {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            margin-top: 30px;
+        }
+        
+        .apply-section p {
+            font-size: 1.2em;
+            margin-bottom: 25px;
+        }
+
+        .apply-button {
+            display: inline-block;
+            background-color: #ff9800; /* Naranja para destacar */
+            color: white;
+            padding: 15px 35px;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .apply-button:hover {
+            background-color: #f57c00;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Closer de Ventas<br>Remotas</h1>
+            <h2 style="font-weight: 400; margin-top: 5px;">¡Lidera nuestra revolución saludable desde donde estés!</h2>
+            <p>¿Tienes ADN comercial, te apasiona el bienestar y tienes un historial comprobado reventando cuotas a través de canales remotos? ¡Esta oportunidad es para ti!</p>
+        </div>
+
+        <div class="job-details">
+            
+            <h3>¿Qué buscamos en ti?</h3>
+            <ul>
+                <li><strong>Experiencia Comercial Senior:</strong> Mínimo 3 años en ventas consultivas, Call Center o gestión comercial B2C (preferencia en tecnología, foodtech, nutrición o salud).</li>
+                <li><strong>Dominio de Ventas Remotas:</strong> Experiencia exitosa cerrando ventas en canales digitales y telefónicos usando CRMs (HubSpot, Salesforce, etc.) y plataformas omnicanal.</li>
+                <li><strong>Habilidades "Closer":</strong> Excelentes habilidades de comunicación, persuasión, seguimiento implacable y orientación absoluta al cliente.</li>
+                <li><strong>Mindset de Alto Rendimiento:</strong> Actitud resiliente, tolerancia a la frustración y un fuerte enfoque en el cumplimiento de metas (¡hambre de comisiones!).</li>
+                <li><strong>Autonomía y Disponibilidad:</strong> Capacidad para trabajar desde casa con alta disciplina y proactividad. Disponibilidad inmediata.</li>
+            </ul>
+
+            <h3>Tus Retos Diarios (Funciones)</h3>
+            <p style="font-size: 1.1em; color: #555; line-height: 1.6; margin-bottom: 20px;">
+                <strong>Propósito:</strong> Liderar el cierre de ventas de nuestros planes de alimentación, gestionando el embudo digital para convertir leads en usuarios fidelizados con una tasa de conversión sobresaliente.
+            </p>
+            <ul>
+                <li><strong>Cierre en Canales Remotos:</strong> Gestión, seguimiento y cierre experto de ventas vía WhatsApp, llamadas telefónicas, chat y plataformas CRM.</li>
+                <li><strong>Asesoría Estratégica:</strong> Brindar orientación personalizada entendiendo las necesidades de salud de los clientes para ofrecer el plan ideal y garantizar su retención.</li>
+                <li><strong>Gestión de Pipeline:</strong> Administración eficiente de la cartera aplicando técnicas de venta cruzada (cross-selling) y aumento de valor de compra (up-selling).</li>
+                <li><strong>Manejo de Objeciones:</strong> Resolución de consultas complejas y derribo de objeciones con empatía y asertividad comercial.</li>
+                <li><strong>Análisis y Optimización:</strong> Identificar cuellos de botella en el embudo, proponer mejoras proactivas y elaborar reportes diarios de métricas.</li>
+                <li><strong>Funciones generales:</strong> Funciones encargadas por la jefatura alineadas al puesto.</li>
+            </ul>
+
+            <h3>¿Qué te ofrecemos?</h3>
+            <div class="grid-container">
+                <div class="grid-item"><strong>Sueldo Base</strong><p>S/ 2,500 mensuales asegurados.</p></div>
+                <div class="grid-item"><strong>Comisiones</strong><p>Hasta S/ 1,200 adicionales por superación de metas.</p></div>
+                <div class="grid-item"><strong>Modalidad</strong><p>100% Presencial</p></div>
+                <div class="grid-item"><strong>Horario</strong><p>11:00 am. a 8:00 p.m. (Sab o Dom de descanso).</p></div>
+                <div class="grid-item"><strong>Beneficios</strong><p>Descuentos exclusivos en planes de alimentación.</p></div>
+                <div class="grid-item"><strong>Crecimiento</strong><p>Línea de carrera en una startup líder en Latam.</p></div>
+            </div>
+
+        </div>
+        
+        <div class="apply-section">
+            <p><strong>¡Súmate a Manzana Verde y sé el motor de nuestras ventas!</strong></p>
+            <a href="https://n8n.manzanaverde.la/form/ventassenior" target="_blank" class="apply-button">Postula Aquí</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Manzana Verde. Todos los derechos reservados.</p>
+    </footer>
+
+</body>
+</html>
