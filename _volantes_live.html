@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Únete al equipo Manzana Verde - Promotora / Volantera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{scroll-behavior:smooth}
+  body{
+    font-family:'Poppins',sans-serif;
+    background:#0f1f12;
+    color:#1a2e1d;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  .bg-aurora{
+    position:fixed;inset:0;z-index:-1;
+    background:#0f1f12;
+    background-image:
+      radial-gradient(at 15% 20%, hsla(120,55%,40%,0.35) 0px, transparent 55%),
+      radial-gradient(at 85% 10%, hsla(95,80%,55%,0.25) 0px, transparent 50%),
+      radial-gradient(at 50% 95%, hsla(140,60%,30%,0.30) 0px, transparent 60%);
+    background-size:200% 200%;
+    animation:pan 18s ease-in-out infinite;
+  }
+  @keyframes pan{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,152,0,.55)}70%{box-shadow:0 0 0 18px rgba(255,152,0,0)}}
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+  .container{max-width:1080px;margin:0 auto;padding:32px 20px}
+
+  .hero{
+    background:rgba(255,255,255,0.96);
+    backdrop-filter:blur(14px);
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,.25);
+    animation:fadeUp .8s ease-out;
+  }
+  .hero-top{
+    background:linear-gradient(135deg,#2e7d32 0%,#43a047 50%,#76ff03 100%);
+    background-size:200% 200%;
+    animation:pan 8s ease infinite;
+    padding:60px 32px 70px;
+    text-align:center;
+    color:#fff;
+    position:relative;
+  }
+  .badge{
+    display:inline-block;
+    background:rgba(255,255,255,.22);
+    backdrop-filter:blur(8px);
+    color:#fff;
+    padding:8px 22px;
+    border-radius:50px;
+    font-weight:600;
+    font-size:.85rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    margin-bottom:20px;
+    border:1px solid rgba(255,255,255,.35);
+  }
+  .hero h1{
+    font-size:clamp(2rem,5vw,3.4rem);
+    font-weight:800;
+    line-height:1.15;
+    margin-bottom:14px;
+    text-shadow:0 4px 12px rgba(0,0,0,.18);
+  }
+  .hero h2{
+    font-size:clamp(1.05rem,2.4vw,1.4rem);
+    font-weight:400;
+    margin-bottom:24px;
+    opacity:.95;
+  }
+  .hero-logo{
+    background:#ffffff;
+    width:180px;
+    height:180px;
+    margin:0 auto 24px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 18px 40px rgba(0,0,0,.22);
+    border:6px solid rgba(255,255,255,.6);
+  }
+  .hero-logo img{
+    display:block;
+    width:140px;
+    height:140px;
+    object-fit:contain;
+  }
+  .hero-cta{
+    display:inline-block;
+    margin-top:18px;
+    background:#ff9800;
+    color:#fff;
+    padding:16px 40px;
+    border-radius:50px;
+    font-weight:700;
+    font-size:1.1rem;
+    text-decoration:none;
+    transition:all .3s;
+    animation:pulse 2.4s infinite;
+    box-shadow:0 8px 22px rgba(255,152,0,.45);
+  }
+  .hero-cta:hover{transform:translateY(-3px) scale(1.03);background:#fb8c00}
+
+  .body-wrap{padding:48px 36px}
+  .lead{
+    font-size:1.12rem;
+    color:#3d4a3f;
+    text-align:center;
+    max-width:760px;
+    margin:0 auto 40px;
+  }
+
+  .section-title{
+    color:#2e7d32;
+    font-size:1.6rem;
+    font-weight:700;
+    margin-bottom:24px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .section-title::before{
+    content:'';
+    width:5px;height:28px;
+    background:linear-gradient(180deg,#76ff03,#2e7d32);
+    border-radius:3px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    margin-bottom:36px;
+  }
+  .card{
+    background:linear-gradient(135deg,#f1f8e9 0%,#e8f5e9 100%);
+    padding:26px 22px;
+    border-radius:14px;
+    border-left:5px solid #4caf50;
+    transition:transform .3s,box-shadow .3s;
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:'';
+    position:absolute;top:0;right:0;width:60px;height:60px;
+    background:radial-gradient(circle,rgba(118,255,3,.15) 0%,transparent 70%);
+    border-radius:50%;
+  }
+  .card:hover{transform:translateY(-6px);box-shadow:0 14px 28px rgba(76,175,80,.22)}
+  .card-icon{font-size:1.8rem;margin-bottom:10px;display:block}
+  .card-label{
+    color:#2e7d32;
+    font-weight:700;
+    font-size:.85rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:6px;
+  }
+  .card-value{color:#1a2e1d;font-size:1.05rem;font-weight:500}
+
+  .perfil ul{list-style:none;padding:0}
+  .perfil li{
+    background:#fff;
+    margin-bottom:12px;
+    padding:16px 20px 16px 56px;
+    border-radius:12px;
+    border:1px solid #e0e8e1;
+    position:relative;
+    transition:all .25s;
+  }
+  .perfil li::before{
+    content:'✓';
+    position:absolute;left:18px;top:50%;
+    transform:translateY(-50%);
+    width:28px;height:28px;
+    background:linear-gradient(135deg,#76ff03,#43a047);
+    color:#fff;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:.9rem;
+  }
+  .perfil li:hover{border-color:#76ff03;transform:translateX(4px)}
+  .perfil li strong{color:#2e7d32}
+
+  .highlight-box{
+    background:linear-gradient(135deg,#fff8e1 0%,#fff3e0 100%);
+    border:2px dashed #ff9800;
+    border-radius:16px;
+    padding:28px 26px;
+    margin:32px 0;
+    text-align:center;
+  }
+  .highlight-box h3{color:#e65100;font-size:1.3rem;margin-bottom:10px}
+  .highlight-box p{color:#6d4c41;font-size:1rem}
+
+  .pago{
+    background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%);
+    color:#fff;
+    border-radius:16px;
+    padding:36px 28px;
+    text-align:center;
+    margin-bottom:36px;
+    position:relative;
+    overflow:hidden;
+  }
+  .pago::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);
+    background-size:200% 100%;
+    animation:shimmer 3s infinite;
+  }
+  .pago-label{font-size:.95rem;letter-spacing:2px;text-transform:uppercase;opacity:.85;margin-bottom:8px}
+  .pago-amount{font-size:3.2rem;font-weight:800;line-height:1}
+  .pago-period{font-size:1rem;opacity:.85;margin-top:6px}
+
+  .sedes{margin-bottom:36px}
+  .sedes-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:12px;
+  }
+  .sede-pill{
+    background:#fff;
+    color:#2e7d32;
+    padding:12px 16px;
+    border-radius:50px;
+    text-align:center;
+    font-weight:600;
+    font-size:.95rem;
+    border:2px solid #c8e6c9;
+    transition:all .25s;
+  }
+  .sede-pill:hover{background:#76ff03;color:#0f1f12;border-color:#76ff03;transform:scale(1.05)}
+
+  .cta-final{
+    text-align:center;
+    padding:40px 24px;
+    background:linear-gradient(135deg,#f1f8e9,#e8f5e9);
+    border-radius:18px;
+    margin-top:24px;
+  }
+  .cta-final h3{color:#2e7d32;font-size:1.6rem;margin-bottom:8px}
+  .cta-final p{color:#3d4a3f;margin-bottom:22px;font-size:1.02rem}
+  .btn-postula{
+    display:inline-block;
+    background:linear-gradient(135deg,#ff9800,#fb8c00);
+    color:#fff;
+    padding:18px 50px;
+    border-radius:50px;
+    font-weight:700;
+    font-size:1.15rem;
+    text-decoration:none;
+    transition:all .3s;
+    box-shadow:0 10px 28px rgba(255,152,0,.45);
+    animation:pulse 2.4s infinite;
+  }
+  .btn-postula:hover{transform:translateY(-3px) scale(1.03);background:linear-gradient(135deg,#fb8c00,#f57c00)}
+
+  .whatsapp-info{
+    margin-top:18px;
+    color:#3d4a3f;
+    font-size:.95rem;
+  }
+  .whatsapp-info a{
+    color:#25d366;
+    font-weight:600;
+    text-decoration:none;
+  }
+  .whatsapp-info a:hover{text-decoration:underline}
+
+  footer{
+    text-align:center;
+    color:rgba(255,255,255,.7);
+    padding:28px 20px;
+    font-size:.88rem;
+  }
+
+  @media (max-width:640px){
+    .body-wrap{padding:32px 20px}
+    .hero-top{padding:50px 22px 56px}
+    .pago-amount{font-size:2.4rem}
+  }
+</style>
+</head>
+<body>
+  <div class="bg-aurora"></div>
+
+  <div class="container">
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-logo"><img src="https://imojovxouuikbmlmfmsy.supabase.co/storage/v1/object/public/Cartas/5.png" alt="Manzana Verde"></div>
+        <span class="badge">Promotora · Volantera</span>
+        <h1>¡Únete a nuestro<br>equipo de Volanteras!</h1>
+        <h2>Carismática, dinámica y con energía para conectar con la gente</h2>
+        <a href="#postular" class="hero-cta">Postular Ahora →</a>
+      </div>
+
+      <div class="body-wrap">
+        <p class="lead">
+          Buscamos <strong>señoritas carismáticas, dinámicas y con excelente trato</strong>
+          para unirse a nuestro equipo como <strong>promotoras / volanteras</strong>
+          en una de nuestras sedes. Si tienes energía y te encanta interactuar
+          con las personas… <strong>¡esta oportunidad es para ti!</strong>
+        </p>
+
+        <h3 class="section-title">Detalles del Puesto</h3>
+        <div class="grid">
+          <div class="card">
+            <span class="card-icon">📍</span>
+            <div class="card-label">Lugar</div>
+            <div class="card-value">Una de nuestras sedes</div>
+          </div>
+          <div class="card">
+            <span class="card-icon">📅</span>
+            <div class="card-label">Días</div>
+            <div class="card-value">Lunes a Sábado</div>
+          </div>
+          <div class="card">
+            <span class="card-icon">⏰</span>
+            <div class="card-label">Horario</div>
+            <div class="card-value">10:00 a.m. — 6:00 p.m.</div>
+          </div>
+          <div class="card">
+            <span class="card-icon">🗓️</span>
+            <div class="card-label">Duración</div>
+            <div class="card-value">2 semanas</div>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <h3>🚀 ¡Hay más!</h3>
+          <p>
+            Existe una <strong>gran posibilidad de ampliar el tiempo de trabajo</strong>
+            para replicar la misma gestión en nuestras otras franquicias
+            si destacas en tu labor.
+          </p>
+        </div>
+
+        <h3 class="section-title">Beneficios</h3>
+        <div class="pago">
+          <div class="pago-label">Pago</div>
+          <div class="pago-amount">S/ 1,130</div>
+          <div class="pago-period">Soles mensuales</div>
+        </div>
+
+        <h3 class="section-title">¿Qué buscamos en ti?</h3>
+        <div class="perfil">
+          <ul>
+            <li><strong>Actitud carismática:</strong> trato amable y excelente energía con cada persona que abordas.</li>
+            <li><strong>Dinamismo:</strong> mantienes el ritmo durante toda la jornada y disfrutas el trabajo de calle.</li>
+            <li><strong>Comunicación:</strong> te expresas con claridad y persuades sin presionar.</li>
+            <li><strong>Compromiso:</strong> puntualidad y disponibilidad inmediata para empezar.</li>
+            <li><strong>Ganas de crecer:</strong> destacar en estas 2 semanas puede llevarte a más oportunidades.</li>
+          </ul>
+        </div>
+
+        <h3 class="section-title">Nuestras Sedes</h3>
+        <div class="sedes">
+          <div class="sedes-list">
+            <div class="sede-pill">Jesús María</div>
+            <div class="sede-pill">San Luis (Rosa Toro)</div>
+            <div class="sede-pill">Surco (Guardia Civil)</div>
+          </div>
+        </div>
+
+        <div id="postular" class="cta-final">
+          <h3>¿Te animas? 🎯</h3>
+          <p>Llena el formulario, adjunta tu CV y nos contactaremos contigo.</p>
+          <a href="/form/volanteras" class="btn-postula">Postular Aquí ✨</a>
+          <p class="whatsapp-info">
+            O escríbenos por WhatsApp:
+            <a href="https://wa.me/51966749662" target="_blank">📱 +51 966 749 662 (Melanie)</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      © 2026 Manzana Verde · Tu revolución saludable empieza aquí
+    </footer>
+  </div>
+</body>
+</html>
