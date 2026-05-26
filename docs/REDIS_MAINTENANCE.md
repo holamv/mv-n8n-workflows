@@ -2,7 +2,7 @@
 
 ## Estado (snapshot 2026-05-15)
 
-- **Redis Cloud**: `database-MJAD4Z1C` @ `redis-16865.c8.us-east-1-4.ec2.cloud.redislabs.com:16865`
+- **Redis Cloud**: `database-MJAD4Z1C` (host/port/password en `.env`, NO en este repo)
 - **Credencial en n8n**: id `1fmA2hXucBVKm50U` "Redis account"
 - **Limitación crítica**: el Code node de n8n corre en un sandbox (`task-runner-javascript`) que **prohíbe `require('ioredis')`**. Por eso no se puede hacer mantenimiento Redis automático desde un workflow n8n sin tocar la config del servidor (env var `NODE_FUNCTION_ALLOW_EXTERNAL=ioredis`).
 
@@ -83,14 +83,16 @@ Realmente la única forma nativa n8n sin requerir ioredis externo es la opción 
 
 ## Credenciales (sensibles)
 
+Las credenciales de Redis viven en `.env` (ver `.env.example`), NUNCA en el repo:
+
 ```
-REDIS_HOST=redis-16865.c8.us-east-1-4.ec2.cloud.redislabs.com
-REDIS_PORT=16865
-REDIS_PASSWORD=SxA1vwSf8NvuKXknACJmEuk1ZiCjJVic
+REDIS_HOST=...
+REDIS_PORT=...
+REDIS_PASSWORD=...
 REDIS_TLS=false
 ```
 
-Embebidas en `redis_cleanup.js`, `redis_apply_ttl.js`, `redis_scan_dryrun.js`. Si rotás la pwd, actualizar los 3 archivos.
+> ⚠️ Los scripts `redis_cleanup.js`, `redis_apply_ttl.js`, `redis_scan_dryrun.js` tenían la password hardcoded (incidente documentado en [SECURITY.md](SECURITY.md)). Migrar a `process.env.REDIS_PASSWORD` antes de versionarlos. Estos scripts están en `.gitignore`.
 
 ## Diagnóstico rápido
 

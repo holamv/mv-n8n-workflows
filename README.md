@@ -11,6 +11,14 @@ Plataforma de automatización conversacional de **Manzana Verde**: bot WhatsApp 
 - **[Manual completo](docs/MANUAL.md)** — qué hace cada workflow, reglas de negocio críticas, cómo pedir cambios, cómo medir estabilidad.
 - **[Catálogo de scripts](scripts/SCRIPTS.md)** — utilidades de auditoría/monitoreo/replay.
 - **[CHANGELOG](docs/CHANGELOG.md)** — registro de deploys y cambios mayores.
+- **[Redis Maintenance](docs/REDIS_MAINTENANCE.md)** — TTL preventivo y limpieza de keys.
+- **[SECURITY](docs/SECURITY.md)** — 🚨 protocolo de secretos + incidente 2026-05-26 (rotación de keys pendiente).
+
+## 🔒 Qué se versiona (y qué NO)
+
+Este repo versiona **solo el set curado**: `workflows/` (JSON sanitizado), `docs/`, `scripts/SCRIPTS.md`, `README`, `.env.example`.
+
+**NO se versiona** (en `.gitignore`): scripts `.js` con secretos hardcoded, execution traces (`_exec_*`), snapshots de trabajo, y archivos de otros proyectos (reclutamiento: piura/closer/trade/CVs). Ver [SECURITY.md](docs/SECURITY.md) para el protocolo completo.
 
 ## 🗂 Workflows incluidos
 
@@ -34,7 +42,7 @@ cp .env.example .env
 # editar .env con la API key de n8n
 ```
 
-> ⚠️ La API key de n8n (`X-N8N-API-KEY`) y el bearer token del MCP server NUNCA se commitean. Viven solo en `.env` y `.mcp.json` (ambos en `.gitignore`).
+> ⚠️ La API key de n8n (`X-N8N-API-KEY`), el bearer token del MCP server y el password de Redis NUNCA se commitean. Viven solo en `.env` y `.mcp.json` (ambos en `.gitignore`). Si vas a versionar un script, migralo a `process.env` primero — ver [SECURITY.md](docs/SECURITY.md).
 
 ## 🚦 Estado actual
 

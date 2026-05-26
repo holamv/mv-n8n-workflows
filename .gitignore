@@ -25,9 +25,86 @@ audit_workflow.json
 
 # ===== Execution traces (contain phone numbers, names, message bodies) =====
 exec_*.json
+_exec_*.json
 missing_phones_traced.json
 audit_local_result.json
 UserscheveAppData*.json
+
+# ===== Snapshots y dumps temporales (PII de clientes / candidatos) =====
+# Prefijo _ = dumps de trabajo (estados live, scans, HTML scrapeado)
+_*.json
+_*.html
+_*.txt
+*_pre_*.json
+*_live.html
+*_live.json
+discord_test_results.json
+notion_test_results.json
+issues_wf_*.json
+base_mv.json
+base_lead_id*.json
+vwg3_workflow.json
+wf_page3.json
+wf_*.json
+DELETED_*.json
+DELETED_*.md
+
+# ===== Proyecto de reclutamiento/RRHH (no pertenece a este repo; entra por error con git add -A) =====
+# CVs, vacantes, piura, closer, trade, volanteras, coordinador
+filtro_cvs_*.json
+piura_*.json
+_piura_*.json
+closer_*.json
+trade_*.json
+_trade_*.json
+_coord*.json
+_coordinador*.txt
+_volantes_*.html
+_vacantes_*.html
+deactivated_pre_*.json
+redis_ttl_maintenance_wf.json
+
+# ===== Scripts operativos con secretos hardcoded (JWT n8n / Redis pwd) =====
+# TODO: migrar a process.env y mover a scripts/ antes de versionar
+add_*.js
+apply_*.js
+audit_*.js
+audit_code_current.js
+build_*.js
+build_coord_ondemand.js
+clear_asesor_lock_*.js
+count_*.js
+create_*.js
+diagnose_*.js
+drill_*.js
+fix_*.js
+fix-*.js
+find_*.js
+issue_code_updated.js
+monitor_*.js
+move_*.js
+plan_b_and_extract_prompt.js
+post_deploy_review*.js
+redis_*.js
+rename_*.js
+replay_*.js
+restrict_*.js
+retry_*.js
+rewrite_*.js
+sim_test.js
+ttl_maintenance_code_v2.js
+update_*.js
+verify_*.js
+sanitize_workflows.js
+setup_redis_ttl_task.ps1
+*.ps1
+
+# Catch-all: ningún .js ni JSON suelto en la raíz se versiona.
+# El código curado vive en workflows/ (JSON) y scripts/ (cuando se migren).
+/*.js
+/*.json
+!/.env.example
+*_results.json
 
 # ===== Local archive folder (historical deploys) =====
 _archive/

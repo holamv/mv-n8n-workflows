@@ -4,6 +4,10 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-05-26
+- **Repo** — 🚨 Incidente de seguridad: ~83 archivos operativos con n8n JWT + Redis password + PII de clientes se habían pusheado a GitHub. Untrackeados, `.gitignore` reforzado con catch-all. Rotación de keys pendiente del owner. Ver [SECURITY.md](SECURITY.md).
+- **Repo** — Añadido `docs/SECURITY.md` (protocolo de secretos) y `docs/REDIS_MAINTENANCE.md` (sanitizado).
+
 ## 2026-05-08
 - **ATC** — `landing_precheck`: pre-check de señales de plan antes de enviar landing `manzanaverde.la/<pais>/pedidos`. Caso origen: `+5213311854591` (MX) recibió landing $99 estando aún en discovery.
 - **ATC** — Saldo framing: cuando cliente pregunta "cómo se cuenta la entrega", responder con framing de saldo flexible. Caso origen: Victor Rodriguez `+5213319224531`.
