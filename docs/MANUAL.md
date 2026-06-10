@@ -249,6 +249,15 @@ Switch rutea por `body.Condición` en 4 ramas:
 - **Hot-reload de MCPs** — requiere reiniciar Claude Code tras cambiar tokens.
 - **Retry NO rescata task runner timeouts** — el error es de orquestación, no del código.
 - **`status=new` en exec listing es engañoso** — lista execs ya finished. NO usar para detectar zombies.
+- **ManyChat "Pausa inteligente" intercepta mensajes** (descubierto 2026-06-10, caso Sabrina `+51952521137`):
+  Cuando un agente humano interviene en ManyChat, se activa una "Pausa inteligente" que detiene las automatizaciones por una ventana de tiempo. Los mensajes que el cliente envía durante la pausa NO escalan al webhook de n8n. Cuando la pausa termina, ManyChat dispara solo el "Whatsapp Default Reply" (welcome menu con botones) ignorando lo que el cliente había escrito. Resultado: el bot parece "ignorar" un mensaje legítimo de retorno/reclamo/etc.
+  
+  **Cómo detectarlo:** en Logs Bot no hay row para el phone en la fecha del mensaje (`lookup_phone +<phone>` retorna vacío o solo registros viejos).
+  
+  **Mitigación:**
+  - Configurar ManyChat para que al terminar la pausa, re-encole el último mensaje del cliente al bot, no solo el Default Reply.
+  - O entrenar a los agentes para responder manualmente todo mensaje recibido durante la pausa antes de cerrar.
+  - El bot NO puede arreglar esto desde su lado — el webhook nunca se dispara.
 
 ### Proceso de deploy (8 pasos)
 
@@ -326,6 +335,7 @@ Cuando llega un screenshot de ManyChat o un número de cliente:
 - Ratio Bridge:Discord >1.1 → cursor stale del Bridge. Reset.
 - Bot ATC dice "no tenemos la opción de que el repartidor te llame" → regresión, debe responder SÍ (llama/escribe/5 min).
 - Doble saludo "¡Hola! Soy Eva" con `prevBot` lleno → regresión del refuerzo anti-resaludo (revisar input garbage como `"^^"`/emojis).
+- Cliente pide retorno ("no pude bajar/recoger", "podría pedir el retorno") y el bot responde el welcome menu → mensaje no llegó al bot, ManyChat smart pause lo interceptó (no es bug del prompt).
 
 ### Replay protocol para outage windows
 
