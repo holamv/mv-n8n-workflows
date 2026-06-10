@@ -69,6 +69,8 @@ IA INTENCIÓN → Switch carril →
 - **Cambio de número de teléfono**: NO es auto-gestión. Bot pide [actual]+[nuevo] y deriva a asesor.
 - **Gramaje pieza cárnica** (no proteína): 800 kcal = 150 g, 600 kcal = 120 g, 400 kcal = 80 g. Nunca decir "X g de proteína".
 - **Locales físicos Lima activos** (4): Miraflores, San Luis, Guardia Civil-Surco, Jesús María. **Encalada-Surco está cerrado** — NO mencionar.
+- **Repartidor contacta al llegar** (deploy 2026-06-10): cuando el cliente pregunta si lo van a llamar/avisar al llegar, responder SÍ. El repartidor llama y/o escribe por WhatsApp y espera **hasta 5 min** como máximo. Prohibido decir "no tenemos esa opción".
+- **Anti-resaludo reforzado** (deploy 2026-06-10): si `prevBot` tiene contenido, NUNCA abrir con "¡Hola! Soy Eva" — ni siquiera cuando el input del cliente es ambiguo/garbage/emojis ("^^", "..", "ok"). Pedir aclaración SIN saludo.
 
 ### Arquitectura de fallback (deploy 2026-05-04)
 
@@ -322,6 +324,8 @@ Cuando llega un screenshot de ManyChat o un número de cliente:
 - `"task runner is currently down"` → saturación Lima business hours. Mover crons a 7:30 AM/PM.
 - `"subscriber_id cannot be blank"` en PCL/PCP → regresión del fix B. Verificar `findBySystemField` con phone limpio.
 - Ratio Bridge:Discord >1.1 → cursor stale del Bridge. Reset.
+- Bot ATC dice "no tenemos la opción de que el repartidor te llame" → regresión, debe responder SÍ (llama/escribe/5 min).
+- Doble saludo "¡Hola! Soy Eva" con `prevBot` lleno → regresión del refuerzo anti-resaludo (revisar input garbage como `"^^"`/emojis).
 
 ### Replay protocol para outage windows
 

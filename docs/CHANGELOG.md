@@ -4,6 +4,10 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-06-10
+- **ATC** — Nueva regla `REGLA REPARTIDOR CONTACTA AL LLEGAR` (prioridad alta). El bot debe responder SÍ cuando el cliente pregunta si el repartidor le avisa al llegar: "te llama y/o te escribe por WhatsApp cuando llega, y espera hasta 5 minutos como máximo". Caso origen: George `+447807400064` exec 834074 — bot respondió "no tenemos esa opción" (falso).
+- **ATC** — Refuerzo `ANTI-RESALUDO` dentro de FASE 1.5. Aplica INCLUSO cuando el input es garbage/emojis/repeticiones ("^^", "..", "ok"). Caso origen: George exec 834075 — bot abrió con "¡Hola! Soy Eva" tras un input `"^^"` con prevBot lleno.
+
 ## 2026-05-26
 - **Repo** — 🚨 Incidente de seguridad: ~83 archivos operativos con n8n JWT + Redis password + PII de clientes se habían pusheado a GitHub. Untrackeados, `.gitignore` reforzado con catch-all. Rotación de keys pendiente del owner. Ver [SECURITY.md](SECURITY.md).
 - **Repo** — Añadido `docs/SECURITY.md` (protocolo de secretos) y `docs/REDIS_MAINTENANCE.md` (sanitizado).
