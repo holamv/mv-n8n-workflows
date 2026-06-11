@@ -72,6 +72,7 @@ IA INTENCIÓN → Switch carril →
 - **Repartidor contacta al llegar** (deploy 2026-06-10): cuando el cliente pregunta si lo van a llamar/avisar al llegar, responder SÍ. El repartidor llama y/o escribe por WhatsApp y espera **hasta 5 min** como máximo. Prohibido decir "no tenemos esa opción".
 - **Anti-resaludo reforzado** (deploy 2026-06-10): si `prevBot` tiene contenido, NUNCA abrir con "¡Hola! Soy Eva" — ni siquiera cuando el input del cliente es ambiguo/garbage/emojis ("^^", "..", "ok"). Pedir aclaración SIN saludo.
 - **Vigencia NO es entregas** (Ventas, deploy 2026-06-10): al listar planes en discovery, OBLIGATORIO incluir rango aproximado de entregas + aclaración explícita "los 45/60/90 son DÍAS de vigencia, no cantidad de entregas". Rangos: Plan Inicio PE ~5-10 entregas, Ahorro ~9-20, Flexible ~12-27. Prohibido "Plan X: precio · vigencia Y días" sin más contexto.
+- **Cubiertos sí se incluyen como opción** (ATC, deploy 2026-06-11): cuando el cliente pregunta por tenedor/cuchara/cubiertos, responder SÍ con los 3 pasos del app (Perfil → Mis Pedidos → ⚙️ Configuración → Habilitar "Incluir cubiertos" → Guardar). Prohibido decir "no incluimos cubiertos".
 
 ### Arquitectura de fallback (deploy 2026-05-04)
 
@@ -338,6 +339,7 @@ Cuando llega un screenshot de ManyChat o un número de cliente:
 - Doble saludo "¡Hola! Soy Eva" con `prevBot` lleno → regresión del refuerzo anti-resaludo (revisar input garbage como `"^^"`/emojis).
 - Cliente pide retorno ("no pude bajar/recoger", "podría pedir el retorno") y el bot responde el welcome menu → mensaje no llegó al bot, ManyChat smart pause lo interceptó (no es bug del prompt).
 - Ventas lista "Plan X: precio · vigencia Y días" sin mencionar rango de entregas → cliente confunde días con cantidad de entregas ("165 × 45 días?"). Regresión de la regla VIGENCIA NO ES ENTREGAS.
+- ATC responde "no incluimos cubiertos" / "no incluimos tenedor" → regresión. SÍ se incluyen como opción, debe responder con los 3 pasos del app.
 
 ### Replay protocol para outage windows
 
