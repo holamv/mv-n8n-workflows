@@ -12,6 +12,8 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ## 2026-06-11
 - **ATC** — Nueva regla `Cubiertos / tenedor / cuchara` dentro de PREGUNTAS DE PRODUCTO. SÍ se incluyen cubiertos como opción (no son default). Respuesta verbatim con 3 pasos del app: Perfil > Mis Pedidos → ⚙️ Configuración → Habilitar "Incluir cubiertos" → Guardar. Prohibido decir "no incluimos cubiertos". Caso origen: `+51961466864` execs 836277/836278 — bot respondió 2× "no incluimos cubiertos" (falso).
+- **ATC** — `CASO C — CANCELAR PEDIDO`, rama **A.2 (Menú Diario fecha HOY)** actualizada. Cambio de política: ahora se OFRECEN 2 opciones (cambio dirección con valor adicional / donación a persona en situación de calle), reemplazando el "no se puede, fin" anterior. Si el cliente elige cambio dirección → CASO A con valor extra (asesor). Si elige donación → confirmación + cierre. Si no responde claro → asesor. Removido el PROHIBIDO obsoleto que vetaba estas 2 opciones. Caso origen: Dario `+51902504588` execs 836283/836284 — bot no respondió porque dedup pipeline filtró ambos a `No Operation, do nothing1` (señal roja conocida, investigar raíz aparte).
+- **n8n outage** (15:39-15:51 UTC aprox.): TCP timeout a `n8n.manzanaverde.la` (3 IPs AWS), curl 21s sin respuesta. Recuperado solo. Sin acción.
 - **ManyChat (issue side)** — Descubierto: la "Pausa inteligente" de ManyChat intercepta mensajes del cliente y al terminar la pausa dispara solo el Default Reply (welcome menu) sin escalar el mensaje pendiente al webhook de n8n. La regla retorno del bot estaba correcta — el msg nunca llegó. Ver MANUAL § "Limitación: ManyChat smart pause".
 
 ## 2026-05-26

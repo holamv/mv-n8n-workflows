@@ -73,6 +73,7 @@ IA INTENCIÓN → Switch carril →
 - **Anti-resaludo reforzado** (deploy 2026-06-10): si `prevBot` tiene contenido, NUNCA abrir con "¡Hola! Soy Eva" — ni siquiera cuando el input del cliente es ambiguo/garbage/emojis ("^^", "..", "ok"). Pedir aclaración SIN saludo.
 - **Vigencia NO es entregas** (Ventas, deploy 2026-06-10): al listar planes en discovery, OBLIGATORIO incluir rango aproximado de entregas + aclaración explícita "los 45/60/90 son DÍAS de vigencia, no cantidad de entregas". Rangos: Plan Inicio PE ~5-10 entregas, Ahorro ~9-20, Flexible ~12-27. Prohibido "Plan X: precio · vigencia Y días" sin más contexto.
 - **Cubiertos sí se incluyen como opción** (ATC, deploy 2026-06-11): cuando el cliente pregunta por tenedor/cuchara/cubiertos, responder SÍ con los 3 pasos del app (Perfil → Mis Pedidos → ⚙️ Configuración → Habilitar "Incluir cubiertos" → Guardar). Prohibido decir "no incluimos cubiertos".
+- **Cancelación same-day Menú Diario ofrece 2 opciones** (ATC CASO C A.2, deploy 2026-06-11): no se puede cancelar el pedido del día, PERO se ofrecen 2 alternativas (cambio dirección con valor adicional → CASO A con asesor, o donación → confirmación + cierre). Si no responde claro → asesor. Restaurante sigue yendo directo a asesor (B.1/B.2).
 
 ### Arquitectura de fallback (deploy 2026-05-04)
 
@@ -340,6 +341,8 @@ Cuando llega un screenshot de ManyChat o un número de cliente:
 - Cliente pide retorno ("no pude bajar/recoger", "podría pedir el retorno") y el bot responde el welcome menu → mensaje no llegó al bot, ManyChat smart pause lo interceptó (no es bug del prompt).
 - Ventas lista "Plan X: precio · vigencia Y días" sin mencionar rango de entregas → cliente confunde días con cantidad de entregas ("165 × 45 días?"). Regresión de la regla VIGENCIA NO ES ENTREGAS.
 - ATC responde "no incluimos cubiertos" / "no incluimos tenedor" → regresión. SÍ se incluyen como opción, debe responder con los 3 pasos del app.
+- Cliente pide cancelar pedido del día y bot no ofrece "cambio dirección / donación" → regresión del CASO C A.2 actualizado (deploy 2026-06-11). Debe ofrecer ambas alternativas antes de cerrar.
+- Exec termina en `No Operation, do nothing1` con mensaje legítimo del cliente → dedup pipeline filtró indebidamente (señal roja). Caso Dario `+51902504588` execs 836283/836284 quedó pendiente de fix en pipeline.
 
 ### Replay protocol para outage windows
 
