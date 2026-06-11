@@ -342,7 +342,7 @@ Cuando llega un screenshot de ManyChat o un número de cliente:
 - Ventas lista "Plan X: precio · vigencia Y días" sin mencionar rango de entregas → cliente confunde días con cantidad de entregas ("165 × 45 días?"). Regresión de la regla VIGENCIA NO ES ENTREGAS.
 - ATC responde "no incluimos cubiertos" / "no incluimos tenedor" → regresión. SÍ se incluyen como opción, debe responder con los 3 pasos del app.
 - Cliente pide cancelar pedido del día y bot no ofrece "cambio dirección / donación" → regresión del CASO C A.2 actualizado (deploy 2026-06-11). Debe ofrecer ambas alternativas antes de cerrar.
-- Exec termina en `No Operation, do nothing1` con mensaje legítimo del cliente → dedup pipeline filtró indebidamente (señal roja). Caso Dario `+51902504588` execs 836283/836284 quedó pendiente de fix en pipeline.
+- Exec termina en `No Operation, do nothing1` con mensaje legítimo del cliente → dedup pipeline filtró indebidamente. **ROOT CAUSE encontrado y fixed 2026-06-11 16:07 UTC**: `If1` usaba `.last()` (mensaje más viejo) en lugar de `.first()` (más nuevo). Subscribers con lista corrupta se auto-sanan en su próximo mensaje. Si vuelve a aparecer post-fix → verificar que `If1` siga usando `.first()`, o investigar si `Redis2` (delete list) está fallando silenciosamente.
 
 ### Replay protocol para outage windows
 
