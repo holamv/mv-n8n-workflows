@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-06-15
+- **ATC** — Nueva regla `REGLA ANTI-FABRICACION DE FECHA "HOY"` (prioridad máxima 🗓️🗓️🗓️). El bot debe comparar `last_daily_order.estimated_time_range.date` (o `order_date`) vs `{{ $now }}` ANTES de decir "será entregado hoy" / "tu pedido de hoy" / "ventana de hoy". Si `pedido_date < fecha_actual` → es de día pasado (no hoy). Si `pedido_date > fecha_actual` → es futuro. Aclaración crítica: `is_delivered=false` con `order_date < hoy` significa pedido NO entregado de día pasado (retorno/cliente no contestó), NO un pedido pendiente para hoy. Caso origen: Cynthia Gomez `+51943656936` exec 840191 — `order_date=2026-06-12`, exec corrió 2026-06-13, bot dijo "será entregado HOY ventana 09:45-13:30" (falso, era de ayer).
+
 ## 2026-06-10
 - **ATC** — Nueva regla `REGLA REPARTIDOR CONTACTA AL LLEGAR` (prioridad alta). El bot debe responder SÍ cuando el cliente pregunta si el repartidor le avisa al llegar: "te llama y/o te escribe por WhatsApp cuando llega, y espera hasta 5 minutos como máximo". Caso origen: George `+447807400064` exec 834074 — bot respondió "no tenemos esa opción" (falso).
 - **ATC** — Refuerzo `ANTI-RESALUDO` dentro de FASE 1.5. Aplica INCLUSO cuando el input es garbage/emojis/repeticiones ("^^", "..", "ok"). Caso origen: George exec 834075 — bot abrió con "¡Hola! Soy Eva" tras un input `"^^"` con prevBot lleno.
