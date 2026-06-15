@@ -5,6 +5,7 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 ---
 
 ## 2026-06-15
+- **ATC** — Nueva regla `REGLA RESTAURANTE — STATUS + VENTANA REAL DEL PEDIDO` (prioridad alta 🍱🛵). Para pedidos `last_foodcourt_order`, el bot DEBE usar el `estimated_time_range.range` real del pedido (ej: "13:00 - 14:00") y el `status` real ("PEDIDO LISTO", "EN PREPARACION", "EN CAMINO"). PROHIBIDO decir "antes de la 1:30 pm" (eso es Menú Diario, NO aplica a Restaurante). Distingue PROGRAMADO (start > 30 min adelante) vs EN CURSO (start ya pasó). Plantillas separadas para HOY (programado/en curso) y FUTURO. Caso origen: Jholvi Bermejo `+51993925470` exec 840232 — Info ATC retornó `last_foodcourt_order.status="PEDIDO LISTO"`, `range="13:00 - 14:00"`, pero bot dijo "antes de la 1:30 pm" (cutoff Menú Diario, fabricación).
 - **ATC** — Nueva regla `REGLA ANTI-FABRICACION DE FECHA "HOY"` (prioridad máxima 🗓️🗓️🗓️). El bot debe comparar `last_daily_order.estimated_time_range.date` (o `order_date`) vs `{{ $now }}` ANTES de decir "será entregado hoy" / "tu pedido de hoy" / "ventana de hoy". Si `pedido_date < fecha_actual` → es de día pasado (no hoy). Si `pedido_date > fecha_actual` → es futuro. Aclaración crítica: `is_delivered=false` con `order_date < hoy` significa pedido NO entregado de día pasado (retorno/cliente no contestó), NO un pedido pendiente para hoy. Caso origen: Cynthia Gomez `+51943656936` exec 840191 — `order_date=2026-06-12`, exec corrió 2026-06-13, bot dijo "será entregado HOY ventana 09:45-13:30" (falso, era de ayer).
 
 ## 2026-06-10
