@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-06-22
+- **Ventas** — `GATE PLAN ACTIVO` reforzado. Antes el GATE solo verificaba `status_id != null/0/nuevo` → falsos positivos con nuevos leads cuyo status_id era "registro" / "lead". Ahora requiere 4 condiciones AND: `last_monthly_plan != null` + `amount > 0` (pagó) + `end_date >= hoy` + `status_name` contiene literalmente "activo"/"vigente"/"recurrente"/"mensual". Si cualquiera falla → tratar como VENTAS_NUEVO. Caso origen: Solano Diego `+51906208578` (21-jun) — bot dijo "¡Qué bueno saludarte de nuevo! Veo que ya tienes un plan activo" a lead nuevo que nunca pagó.
+
 ## 2026-06-15
 - **ATC** — CASO A reforzado: nuevo banner `🚨🚨 STOP — ANTES DE TODO: PREGUNTA TIPO DE PEDIDO (REGLA #0)` con PRIORIDAD sobre cualquier otra regla del CASO A. El PASO 1.5 (deploy 12-jun) no se estaba siguiendo — agregado banner explícito con "ESPERA respuesta. NO ejecutes Deeplink, NO des pasos, NO asumas tipo".
 - **ATC** — Nueva política `ALCANCE DEL ASESOR`: asesor SÍ cambia dirección SOLO para pedidos de Restaurante. Para Menú Diario, el cambio se hace ÚNICAMENTE desde la app del cliente. Si Menú Diario y app no permite (cutoff pasado / pedido en preparación) → NO ofrecer "te conecto con asesor para gestionarlo"; ofrecer las alternativas del CASO C A.2 (cambio dirección con valor adicional via logística, o donación). Removidas las menciones de "te conecto con un asesor para intentar gestionarlo" / "asesor te acompañe paso a paso o lo gestione" en rama HOY y FOLLOW-UP. Caso origen: Nils Cuadros `+51996290434` (2026-06-16) — bot dio pasos del app sin preguntar tipo + ofreció asesor para gestionar Menú Diario (doble error).
