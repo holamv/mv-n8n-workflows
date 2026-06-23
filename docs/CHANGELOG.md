@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-06-23
+- **ATC** — `CASO FACTURAS` splited por país. Antes plantilla única pedía RUC/DNI (PE). Ahora 3 plantillas: 🇵🇪 PE (RUC/DNI + razón social + cocina), 🇲🇽 MX (CFDI 4.0: pide PDF de Constancia de Situación Fiscal + RFC + régimen fiscal + código postal + dirección fiscal + uso CFDI + forma de pago), 🇨🇴 CO (NIT/cédula + correo + dirección). PROHIBIDO MX pedir "RUC/DNI" — usar RFC. Caso origen: Ricardo Duran `+5213330647210` (MX, 2026-06-23) — bot pidió RUC/DNI a cliente MX.
+
 ## 2026-06-22
 - **Ventas** — `GATE PLAN ACTIVO` reforzado. Antes el GATE solo verificaba `status_id != null/0/nuevo` → falsos positivos con nuevos leads cuyo status_id era "registro" / "lead". Ahora requiere 4 condiciones AND: `last_monthly_plan != null` + `amount > 0` (pagó) + `end_date >= hoy` + `status_name` contiene literalmente "activo"/"vigente"/"recurrente"/"mensual". Si cualquiera falla → tratar como VENTAS_NUEVO. Caso origen: Solano Diego `+51906208578` (21-jun) — bot dijo "¡Qué bueno saludarte de nuevo! Veo que ya tienes un plan activo" a lead nuevo que nunca pagó.
 
