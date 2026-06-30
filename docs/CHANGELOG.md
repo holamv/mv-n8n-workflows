@@ -5,6 +5,7 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 ---
 
 ## 2026-07-01
+- **ATC + Ventas + Reconsumos** — Nueva regla `CAMBIO DE NÚMERO DE TELÉFONO` (no es auto-gestión 📱). NO se cambia desde el app — solo asesor. Bot pide ambos números (actual + nuevo) en turno 1, en turno 2 confirma "[actual] → [nuevo]" y deriva. PROHIBIDO "actualízalo desde tu perfil en la app" / deeplink `n8n-auth-`. Caso origen: Echevarria Quispe Luis Miguel `+51915226446` — bot recomendó hacerlo desde app (falso). ATC full rule, Ventas y Reconsumos con reminder corto.
 - **ATC** — Nueva regla `REGLA ELIMINAR CUENTA / DAR DE BAJA` (NO derivar, atender directo). Trámite estandarizado 24-48h hábiles, equipo administrativo procesa en backend. Plantilla verbatim: "Entendido [Nombre] 🍏 — registramos tu solicitud de eliminación de cuenta. El proceso demora de 24 a 48 horas hábiles..." Prohibido decir "te conecto con un asesor especializado para gestionar la eliminación". Caso origen: Fabio Andrés Cuadrado `+573006687510` (CO, 1-jul) — bot derivó indebidamente.
 
 ## 2026-06-30
