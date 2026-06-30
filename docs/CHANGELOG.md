@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-06-30
+- **Ventas + Calculadora** — Fix precio Cena 600 kcal (Aumentar masa). Antes el prompt listaba: PE "cena 600 kcal S/17.50 → S/11.50" / CO "$17,500 → $11,500" (eran precios de Cena 400). Correcto: la Cena 600 kcal vale lo mismo que el Almuerzo 600 kcal — PE S/21.50 → S/15.50, CO $21,500 → $15,500. Calculadora ahora incluye explícitamente "Cena 600 kcal (Aumentar masa)" en lista de precios PE y CO. Agregado bloque ANTI-CONFUSION para evitar mezcla con Cena 400. Caso origen: Pedro Leonel `+51901881380` (24-jun) — bot dijo "cena de 600 kcal baja de S/17.50 a S/11.50".
+
 ## 2026-06-23
 - **ATC** — `CASO FACTURAS` splited por país. Antes plantilla única pedía RUC/DNI (PE). Ahora 3 plantillas: 🇵🇪 PE (RUC/DNI + razón social + cocina), 🇲🇽 MX (CFDI 4.0: pide PDF de Constancia de Situación Fiscal + RFC + régimen fiscal + código postal + dirección fiscal + uso CFDI + forma de pago), 🇨🇴 CO (NIT/cédula + correo + dirección). PROHIBIDO MX pedir "RUC/DNI" — usar RFC. Caso origen: Ricardo Duran `+5213330647210` (MX, 2026-06-23) — bot pidió RUC/DNI a cliente MX.
 
