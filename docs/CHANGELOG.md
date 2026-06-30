@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-07-01
+- **ATC** — Nueva regla `REGLA ELIMINAR CUENTA / DAR DE BAJA` (NO derivar, atender directo). Trámite estandarizado 24-48h hábiles, equipo administrativo procesa en backend. Plantilla verbatim: "Entendido [Nombre] 🍏 — registramos tu solicitud de eliminación de cuenta. El proceso demora de 24 a 48 horas hábiles..." Prohibido decir "te conecto con un asesor especializado para gestionar la eliminación". Caso origen: Fabio Andrés Cuadrado `+573006687510` (CO, 1-jul) — bot derivó indebidamente.
+
 ## 2026-06-30
 - **Ventas + Calculadora** — Fix precio Cena 600 kcal (Aumentar masa). Antes el prompt listaba: PE "cena 600 kcal S/17.50 → S/11.50" / CO "$17,500 → $11,500" (eran precios de Cena 400). Correcto: la Cena 600 kcal vale lo mismo que el Almuerzo 600 kcal — PE S/21.50 → S/15.50, CO $21,500 → $15,500. Calculadora ahora incluye explícitamente "Cena 600 kcal (Aumentar masa)" en lista de precios PE y CO. Agregado bloque ANTI-CONFUSION para evitar mezcla con Cena 400. Caso origen: Pedro Leonel `+51901881380` (24-jun) — bot dijo "cena de 600 kcal baja de S/17.50 a S/11.50".
 
