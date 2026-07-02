@@ -5,6 +5,7 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 ---
 
 ## 2026-07-02
+- **ATC** — `CASO E (Solicitar Retorno)` reforzado. Ampliadas señales: "como puedo hacer para recibir mi pedido", "el repartidor ya se fue", "el repartidor me indica que ya se fue", "coordine por este medio" (post-fallo). Nuevo TRIGGER DURO: si `delivery_status = CLIENTE NO CONTESTO` → cualquier pregunta sobre "como recibir/que hago" activa CASO E, NO aplicar REGLA REPARTIDOR CONTACTA (esa es PRE-entrega). Nuevo PROHIBIDO: decir "el repartidor espera 5 min / coordinar por WhatsApp" cuando status = CLIENTE NO CONTESTO (repartidor ya se fue). Caso origen: Aldo F.D. `+51989056524` (PE, 3-jul) — bot dio guion pre-entrega en vez de CASO E.
 - **ATC** — Nueva regla `👤 NOMBRE CLIENTE + PEDIDO NO ENCONTRADO`. PROHIBIDO "estimado cliente" / "estimada cliente" — usar `WHATSAPP.name` (ManyChat, casi siempre disponible) como fallback si Info ATC no tiene name, u omitir. Cuando cliente menciona pedido específico ("ayer hice mi pedido para hoy") + `last_daily_order`/`last_foodcourt_order` null → bot pide correo o número con el que hizo el pedido, NO responde "no logré entenderte" genérico. Caso origen: Doris Gamboa `+573003773409` (CO, 2-jul) — bot dijo "estimado cliente" + "no logré entenderte" cuando cliente ya dio detalle claro.
 
 ## 2026-07-01
