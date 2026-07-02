@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-07-02
+- **ATC** — Nueva regla `👤 NOMBRE CLIENTE + PEDIDO NO ENCONTRADO`. PROHIBIDO "estimado cliente" / "estimada cliente" — usar `WHATSAPP.name` (ManyChat, casi siempre disponible) como fallback si Info ATC no tiene name, u omitir. Cuando cliente menciona pedido específico ("ayer hice mi pedido para hoy") + `last_daily_order`/`last_foodcourt_order` null → bot pide correo o número con el que hizo el pedido, NO responde "no logré entenderte" genérico. Caso origen: Doris Gamboa `+573003773409` (CO, 2-jul) — bot dijo "estimado cliente" + "no logré entenderte" cuando cliente ya dio detalle claro.
+
 ## 2026-07-01
 - **ATC** — Nueva regla `⚖️ AMENAZA DE ESCALACIÓN LEGAL / OTRAS INSTANCIAS` (de-escalar + derivar URGENTE). Señales: "nos vemos en otras instancias", "INDECOPI/PROFECO/SIC", "voy a demandar", "mi abogado", "reclamo formal", "voy a redes sociales". Bot NUNCA responde como despedida casual ("que te vaya bien", "nos vemos en otras instancias"), NUNCA ecoa la frase. Plantilla: "Lamento mucho llegar a este punto [Nombre] 🙏 ... Te conecto de inmediato con asesor senior..." + derivar con flag URGENTE. NO admitir responsabilidad ni ofrecer compensaciones por WhatsApp. Caso origen: lecca gómez rosa maria `+51963992715` — bot respondió "¡Nos vemos en otras instancias!" con emoji feliz, cliente ofendida por ironía.
 - **ATC + Ventas + Reconsumos** — Nueva regla `CAMBIO DE NÚMERO DE TELÉFONO` (no es auto-gestión 📱). NO se cambia desde el app — solo asesor. Bot pide ambos números (actual + nuevo) en turno 1, en turno 2 confirma "[actual] → [nuevo]" y deriva. PROHIBIDO "actualízalo desde tu perfil en la app" / deeplink `n8n-auth-`. Caso origen: Echevarria Quispe Luis Miguel `+51915226446` — bot recomendó hacerlo desde app (falso). ATC full rule, Ventas y Reconsumos con reminder corto.
