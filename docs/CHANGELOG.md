@@ -5,6 +5,7 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 ---
 
 ## 2026-07-03
+- **ATC** — 3er deploy: FASE 4 CONSULTA DE PEDIDOS con nueva `REGLA #0 — PREGUNTAR TIPO ANTES DE CONFIRMAR` (PE). Antes de dar detalles (estado/hora/contenido), bot pregunta "¿tu consulta es sobre Menú Diario o Restaurante?" y espera. Excepciones para no preguntar: solo un pedido activo en Info ATC, cliente ya especificó tipo, o adjuntó captura. CO/MX asumen Menú Diario. Caso origen: Cami/Carmen `+51994291509` (PE) — bot dio detalles de Restaurante sin confirmar tipo.
 - **ATC** — 2do deploy del día: refuerzo `💰 REGLA CIFRAS DE COSTO — NUNCA INVENTAR` como banner top (prioridad máxima). El anterior estaba dentro de CASO A HOY; ahora también como banner top con más contextos (delivery, retorno, cargo variable). Añadido 2do caso nathaly `+51939697996` — bot dijo "costo de envío S/6" (misma cifra inventada). Frases correctas verbatim para reutilizar.
 - **ATC** — CASO A rama HOY: nuevo `⛔ PROHIBIDO cotizar valor específico` para cambio dirección same-day. Bot NUNCA inventa cifras (S/6, S/8, $8,000). El monto exacto lo calcula la app según ruta O lo confirma un asesor. Frase correcta: "El valor adicional lo verás en la app al hacer el cambio, o lo confirma el asesor. Depende de la gestión de ruta". Caso origen: Alfredo Huapalla `+51995069600` — bot dijo "para esta dirección aparece S/6" (fabricación).
 
