@@ -5,6 +5,7 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 ---
 
 ## 2026-07-06
+- **ATC + Ventas + Reconsumos + Tool_Procesador_Pagos** — Nueva regla `💵 MONTOS DE RECARGA — SOLO PLANES FIJOS`. Bot NO ofrece recargar montos arbitrarios al wallet. Solo procesa pagos de planes vigentes (PE: S/160/S/298/S/390; CO: $298K/$390K; MX: $1,910/$2,499). Rechaza recargas por "reponer" consumo foodcourt / montos libres / Yape por cantidad no-plan. Ofrece planes completos. Caso origen: Ariana "Ari" `+51933025337` (PE) — compró postres foodcourt, bot ofreció recargar ese monto libre al wallet (falso).
 - **ATC + Ventas** — Nueva regla `📍 DIRECCION VERBATIM` (prioridad máxima). Al confirmar cobertura o repetir dirección del cliente, bot copia EXACTAMENTE lo que el cliente escribió (calle, número, letra, barrio). PROHIBIDO reformatear ("Calle"→"Cl."), cambiar números/letras, alterar barrio o rellenar campos con datos alucinados. Si sospecha typo → preguntar, no alterar. Caso origen: Leidy (CO, 6-jul) — cliente escribió "Calle 10 sur #14a 36, San antonio sur", bot confirmó "Cl. 4 Sur #14b-36, Bogotá" (dirección totalmente distinta).
 
 ## 2026-07-03
