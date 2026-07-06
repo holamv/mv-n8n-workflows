@@ -4,6 +4,9 @@ Registro de deploys y cambios mayores. Solo cambios de impacto (regla nueva, fix
 
 ---
 
+## 2026-07-06
+- **ATC + Ventas** — Nueva regla `📍 DIRECCION VERBATIM` (prioridad máxima). Al confirmar cobertura o repetir dirección del cliente, bot copia EXACTAMENTE lo que el cliente escribió (calle, número, letra, barrio). PROHIBIDO reformatear ("Calle"→"Cl."), cambiar números/letras, alterar barrio o rellenar campos con datos alucinados. Si sospecha typo → preguntar, no alterar. Caso origen: Leidy (CO, 6-jul) — cliente escribió "Calle 10 sur #14a 36, San antonio sur", bot confirmó "Cl. 4 Sur #14b-36, Bogotá" (dirección totalmente distinta).
+
 ## 2026-07-03
 - **ATC** — 3er deploy: FASE 4 CONSULTA DE PEDIDOS con nueva `REGLA #0 — PREGUNTAR TIPO ANTES DE CONFIRMAR` (PE). Antes de dar detalles (estado/hora/contenido), bot pregunta "¿tu consulta es sobre Menú Diario o Restaurante?" y espera. Excepciones para no preguntar: solo un pedido activo en Info ATC, cliente ya especificó tipo, o adjuntó captura. CO/MX asumen Menú Diario. Caso origen: Cami/Carmen `+51994291509` (PE) — bot dio detalles de Restaurante sin confirmar tipo.
 - **ATC** — 2do deploy del día: refuerzo `💰 REGLA CIFRAS DE COSTO — NUNCA INVENTAR` como banner top (prioridad máxima). El anterior estaba dentro de CASO A HOY; ahora también como banner top con más contextos (delivery, retorno, cargo variable). Añadido 2do caso nathaly `+51939697996` — bot dijo "costo de envío S/6" (misma cifra inventada). Frases correctas verbatim para reutilizar.
