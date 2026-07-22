@@ -2,13 +2,14 @@
 
 Plataforma de automatización conversacional de **Manzana Verde**: bot WhatsApp ATC, bridge de Discord, plantillas outbound (PCL / PCP / Seguimiento 14d) y herramientas de auditoría.
 
-> Live: [n8n.manzanaverde.la](https://n8n.manzanaverde.la)
+> Live: [n8n.manzanaverde.la](https://n8n.manzanaverde.la) (instancia **A**) · [n8n2.manzanaverde.la](https://n8n2.manzanaverde.la) (instancia **B**, pipeline de leads + analítica de marketing)
 
 ---
 
 ## 📚 Documentación
 
-- **[Manual completo](docs/MANUAL.md)** — qué hace cada workflow, reglas de negocio críticas, cómo pedir cambios, cómo medir estabilidad.
+- **[Catálogo de workflows](docs/WORKFLOWS.md)** — inventario **completo** de los 65 workflows activos en las **2 instancias** (A + B) y su uso, más los relacionados on-demand/legacy.
+- **[Manual completo](docs/MANUAL.md)** — detalle profundo de los 5 workflows conversacionales core (ATC, Bridge, PCL, PCP, Seguimiento 14d), reglas de negocio críticas, cómo pedir cambios, cómo medir estabilidad.
 - **[Catálogo de scripts](scripts/SCRIPTS.md)** — utilidades de auditoría/monitoreo/replay.
 - **[CHANGELOG](docs/CHANGELOG.md)** — registro de deploys y cambios mayores.
 - **[Redis Maintenance](docs/REDIS_MAINTENANCE.md)** — TTL preventivo y limpieza de keys.
@@ -22,16 +23,20 @@ Este repo versiona **solo el set curado**: `workflows/` (JSON sanitizado), `docs
 
 ## 🗂 Workflows incluidos
 
-| Archivo | Workflow ID | Función |
-|---|---|---|
-| `workflows/atc.json` | `R81I6h5KWtyNaDAy` | Agente ATC (146 nodos) — Ventas / ATC / Reconsumos |
-| `workflows/discord_bridge.json` | `VwG3AgtdDDdjC7xc` | Lee Discord cada 3 min y dispara PCL |
-| `workflows/pcl.json` | `9MxNM5byLghh9ky2` | Primer Contacto Leads (welcome) |
-| `workflows/pcp.json` | `s37SLqGFljbf08Js` | Contacto Primer Pedido |
-| `workflows/seguimiento_14d.json` | `FS68xVacNF1DN9cd` | Re-engagement clientes inactivos (4 ramas) |
-| `workflows/referidos.json` | — | Programa de referidos |
-| `workflows/wallet.json` | — | Workflow de saldos / recargas |
-| `workflows/obtener_direccion.json` | — | Sub-workflow de geocoding |
+Snapshots JSON versionados en este repo (subset curado, **capturados 2026-05-08, pre-migración**). El **inventario completo y vivo** está en **[docs/WORKFLOWS.md](docs/WORKFLOWS.md)**. La columna "Workflow ID" apunta al ID **en producción hoy** (no necesariamente al que representa el snapshot).
+
+| Archivo | Workflow ID | Instancia | Función |
+|---|---|---|---|
+| `workflows/atc.json` | `R81I6h5KWtyNaDAy` | A | Agente ATC (155 nodos) — Ventas / ATC / Reconsumos |
+| `workflows/discord_bridge.json` | `tLAVt91iWAHsY2eE` | **B** | Lee Discord cada 3 min y dispara PCL (migrado desde A `VwG3AgtdDDdjC7xc`) |
+| `workflows/pcl.json` | `AAntaw0Aa0fkDSaR` | **B** | Primer Contacto Leads (migrado desde A `9MxNM5byLghh9ky2`) |
+| `workflows/pcp.json` | `s37SLqGFljbf08Js` | A | Contacto Primer Pedido |
+| `workflows/seguimiento_14d.json` | `FS68xVacNF1DN9cd` | A | Re-engagement clientes inactivos (4 ramas) |
+| `workflows/referidos.json` | `4g14aSPGtVfvGvqU` | A | Programa de referidos |
+| `workflows/wallet.json` | `Il7WWfAJCElkQx3d` | A | Sub-workflow de saldos / recargas |
+| `workflows/obtener_direccion.json` | `2BqhLRHKtIgshEDy` | A | Sub-workflow de geocoding |
+
+> ⚠️ Los archivos `workflows/*.json` reflejan el subset core; el **Discord Bridge** y **PCL** ahora corren en la instancia **B** con IDs nuevos (arriba). Para todo lo demás (RRHH, tickets, compras, analítica de marketing, utilidades) ver el catálogo completo.
 
 ## 🔧 Setup local
 
