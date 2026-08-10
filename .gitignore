@@ -186,3 +186,18 @@ wf_primer_pedido.json
 wf_referidos.json
 wf_seguimiento14.json
 
+
+# ===== 2026-08 additions: dumps, CSVs, recovery scripts, contact lists =====
+_recover/
+_atc_dumps/
+_mx_dumps/
+_sample_co/
+_sample_pe/
+backups_pre_delete_*/
+_*.csv
+_*.json
+_*.txt
+_*.html
+_mv_boletas_*.cjs
+_mv_n8n.cjs
+lista_*_manychat_*.csv
