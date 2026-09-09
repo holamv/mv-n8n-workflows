@@ -201,3 +201,21 @@ _*.html
 _mv_boletas_*.cjs
 _mv_n8n.cjs
 lista_*_manychat_*.csv
+
+# ===== Banco de pruebas Luna (_luna_test) =====
+# Se versionan SOLO los scripts .js. Excluido todo lo demas:
+#  - *.json: snapshots del workflow (1.2 MB c/u) y trazas de ejecuciones con PII
+#  - *.txt : logs de canario con nombres de clientes reales
+_luna_test/*.json
+_luna_test/*.txt
+_luna_test/.lastexec
+_luna_test/.firecrawl/
+
+# ===== Scans y artefactos de herramientas =====
+_wf_scan/
+.playwright-mcp/
+
+# Excepciones: los scripts del banco SI se versionan, pese a los patrones
+# amplios de arriba (build_*.js, deploy_*.js, fix_*.js, verify_*.js) que
+# existen para los scripts one-off de la raiz del repo.
+!_luna_test/*.js
