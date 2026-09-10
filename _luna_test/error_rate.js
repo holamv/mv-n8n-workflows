@@ -7,7 +7,16 @@ const g=p=>new Promise(r=>{https.get({hostname:'n8n.manzanaverde.la',path:p,head
  for(const st of ['success','error']){ let cur=''; all[st]=[];
   for(let i=0;i<8;i++){ const l=await g(`/api/v1/executions?workflowId=R81I6h5KWtyNaDAy&limit=100&status=${st}${cur?'&cursor='+cur:''}`);
    if(!l?.data?.length)break; all[st].push(...l.data.map(e=>new Date(e.startedAt))); cur=l.nextCursor; if(!cur)break; } }
- const DEPLOY=new Date('2026-09-09T14:07:52Z');
+ const DEPLOY=new Date(process.argv[2]||'2026-09-09T14:07:52Z');
+ // Honestidad de muestreo: 'success' es mucho mas frecuente que 'error', asi que al
+ // paginar la misma cantidad de cada uno la ventana cubierta por success es MAS CORTA.
+ // Si no se recorta, las horas viejas muestran solo errores => 100% falso.
+ const oldestOk=all['success'].length?new Date(Math.min(...all['success'].map(d=>+d))):null;
+ const oldestErr=all['error'].length?new Date(Math.min(...all['error'].map(d=>+d))):null;
+ const FLOOR=oldestOk&&oldestErr?new Date(Math.max(+oldestOk,+oldestErr)):(oldestOk||oldestErr);
+ for(const st of Object.keys(all)) all[st]=all[st].filter(d=>d>=FLOOR);
+ console.log(`ventana con cobertura completa de ambos status: desde ${FLOOR.toISOString()}
+`);
  const bucket=d=>d.toISOString().slice(0,13);
  const rows={};
  for(const [st,arr] of Object.entries(all)) for(const d of arr){
