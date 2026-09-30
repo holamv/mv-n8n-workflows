@@ -9,6 +9,7 @@ const FIELDS = ['name', 'nodes', 'connections', 'settings'];
 const OPTIONS = {
   base: { type: 'string' },
   file: { type: 'string' },
+  id: { type: 'string' },
   'env-key': { type: 'string', default: DEFAULT_ENV_KEY },
 };
 
@@ -26,8 +27,9 @@ if (!apiKey) fail(`Environment variable ${values['env-key']} is not set`);
 const source = JSON.parse(await readFile(values.file, 'utf8'));
 const body = Object.fromEntries(FIELDS.map((field) => [field, source[field]]));
 
-const response = await fetch(new URL(API_PATH, values.base), {
-  method: 'POST',
+const target = values.id ? `${API_PATH}/${values.id}` : API_PATH;
+const response = await fetch(new URL(target, values.base), {
+  method: values.id ? 'PUT' : 'POST',
   headers: { [KEY_HEADER]: apiKey, 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 });

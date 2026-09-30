@@ -34,7 +34,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const MONITORED = [\n  { workflowId: 'AAntaw0Aa0fkDSaR', agentKey: 'pcl' },\n];\nconst DEFAULT_BASE_URL = 'https://data-lake-mv.vercel.app';\nconst BASE_URL_VAR = 'DATALAKE_BASE_URL';\nconst INGEST_PATH = '/api/datalake/agent-runs/ingest';\nconst STATIC_SCOPE = 'global';\nconst EMPTY_CURSOR = 0;\n\nfunction resolveBaseUrl() {\n  try {\n    return $env[BASE_URL_VAR] || DEFAULT_BASE_URL;\n  } catch (error) {\n    return DEFAULT_BASE_URL;\n  }\n}\n\nconst store = $getWorkflowStaticData(STATIC_SCOPE);\nconst cursors = store.cursors || {};\nconst ingestUrl = resolveBaseUrl() + INGEST_PATH;\n\nreturn MONITORED.map(({ workflowId, agentKey }) => ({\n  json: {\n    workflowId,\n    agentKey,\n    cursor: Number(cursors[workflowId] || EMPTY_CURSOR),\n    ingestUrl,\n  },\n}));"
+        "jsCode": "const MONITORED = [\n  { workflowId: 'AAntaw0Aa0fkDSaR', agentKey: 'pcl' },\n];\nconst DEFAULT_BASE_URL = 'https://data-lake-mv.manzanaverde.la';\nconst BASE_URL_VAR = 'DATALAKE_BASE_URL';\nconst INGEST_PATH = '/api/datalake/agent-runs/ingest';\nconst STATIC_SCOPE = 'global';\nconst EMPTY_CURSOR = 0;\n\nfunction resolveBaseUrl() {\n  try {\n    return $env[BASE_URL_VAR] || DEFAULT_BASE_URL;\n  } catch (error) {\n    return DEFAULT_BASE_URL;\n  }\n}\n\nconst store = $getWorkflowStaticData(STATIC_SCOPE);\nconst cursors = store.cursors || {};\nconst ingestUrl = resolveBaseUrl() + INGEST_PATH;\n\nreturn MONITORED.map(({ workflowId, agentKey }) => ({\n  json: {\n    workflowId,\n    agentKey,\n    cursor: Number(cursors[workflowId] || EMPTY_CURSOR),\n    ingestUrl,\n  },\n}));"
       }
     },
     {

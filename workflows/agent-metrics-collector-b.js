@@ -22,7 +22,7 @@ const readCursors = node({
       jsCode: `const MONITORED = [
   { workflowId: 'AAntaw0Aa0fkDSaR', agentKey: 'pcl' },
 ];
-const DEFAULT_BASE_URL = 'https://data-lake-mv.vercel.app';
+const DEFAULT_BASE_URL = 'https://data-lake-mv.manzanaverde.la';
 const BASE_URL_VAR = 'DATALAKE_BASE_URL';
 const INGEST_PATH = '/api/datalake/agent-runs/ingest';
 const STATIC_SCOPE = 'global';
@@ -51,7 +51,7 @@ return MONITORED.map(({ workflowId, agentKey }) => ({
     },
     position: [480, 300]
   },
-  output: [{ workflowId: 'AAntaw0Aa0fkDSaR', agentKey: 'pcl', cursor: 0, ingestUrl: 'https://data-lake-mv.vercel.app/api/datalake/agent-runs/ingest' }]
+  output: [{ workflowId: 'AAntaw0Aa0fkDSaR', agentKey: 'pcl', cursor: 0, ingestUrl: 'https://data-lake-mv.manzanaverde.la/api/datalake/agent-runs/ingest' }]
 });
 
 const fetchExecutions = node({
