@@ -132,7 +132,7 @@ const BAD_REQUEST_PATTERN = /(^|[^0-9])400([^0-9]|$)/;
 const AGENTS = {
   AAntaw0Aa0fkDSaR: {
     key: 'pcl',
-    requestNodes: ['OpenAI Chat Model', 'OpenAI Chat Model1'],
+    requestNodes: ['Leads', 'Recovery'],
     hashId: true,
     webhookNodes: ['Leads', 'Recovery'],
     idPaths: [['body', 'celular'], ['body', 'phone']],

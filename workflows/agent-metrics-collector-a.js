@@ -139,7 +139,7 @@ const AGENTS = {
   },
   FS68xVacNF1DN9cd: {
     key: 'seg14d',
-    requestNodes: ['OpenAI Chat Model', 'OpenAI Chat Model1', 'OpenAI Chat Model2'],
+    requestNodes: ['Seguimiento', 'Webhook'],
     hashId: true,
     webhookNodes: ['Seguimiento', 'Webhook'],
     idPath: ['body', 'celular'],
