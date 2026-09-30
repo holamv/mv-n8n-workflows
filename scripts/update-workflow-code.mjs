@@ -37,14 +37,10 @@ const current = await fetch(url, { headers });
 if (!current.ok) fail(`Read failed with HTTP ${current.status}`);
 const source = await current.json();
 
-let replaced = 0;
-for (const node of source.nodes) {
-  const code = node.parameters?.jsCode;
-  if (typeof code !== 'string' || !code.includes(values.from)) continue;
-  node.parameters.jsCode = code.split(values.from).join(values.to);
-  replaced += 1;
-}
-if (!replaced) fail('No code node contains the text to replace');
+const serialized = JSON.stringify(source.nodes);
+const replaced = serialized.split(values.from).length - 1;
+if (!replaced) fail('No node contains the text to replace');
+source.nodes = JSON.parse(serialized.split(values.from).join(values.to));
 
 const body = Object.fromEntries(FIELDS.map((field) => [field, source[field]]));
 body.settings = Object.fromEntries(SETTINGS_KEYS.filter((key) => key in (source.settings || {})).map((key) => [key, source.settings[key]]));
