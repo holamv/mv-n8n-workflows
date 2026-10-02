@@ -125,6 +125,8 @@ const KIND = {
   leak: 'reasoning_leak',
   empty: 'no_response',
 };
+const CUSTOMER_PRESENT = 1;
+const CUSTOMER_ABSENT = 0;
 const ATC_AGENTS = ['Ventas', 'ATC', 'Reconsumos'];
 const AGENTS = {
   R81I6h5KWtyNaDAy: {
@@ -136,6 +138,9 @@ const AGENTS = {
     laneNodes: ATC_AGENTS,
     agentNodes: ATC_AGENTS,
     guardNodes: ['Guard ATC', 'Guard Reconsumos'],
+    countryNodes: ['Perú', 'Colombia', 'México', 'Red Social', 'Otro País'],
+    inboundNode: 'Redis - MARK',
+    sendNodes: ['Saludo Whatsapp', 'Saludo Whatsapp1', 'Saludo Whatsapp2', 'Envío Imagen'],
   },
   FS68xVacNF1DN9cd: {
     key: 'seg14d',
@@ -146,6 +151,9 @@ const AGENTS = {
     laneNodes: [],
     agentNodes: ['AI Agent', 'AI Agent1', 'AI Agent2'],
     guardNodes: [],
+    countryNodes: [],
+    inboundNode: null,
+    sendNodes: [],
   },
 };
 
@@ -209,6 +217,19 @@ function errorKind(exec, agent, runData, isRequest) {
   return isRequest && agentRan && !answered ? KIND.empty : null;
 }
 
+function country(agent, runData) {
+  return agent.countryNodes.find((name) => ran(runData, name)) || null;
+}
+
+function customerMessages(agent, runData) {
+  if (!agent.inboundNode) return CUSTOMER_ABSENT;
+  return ran(runData, agent.inboundNode) ? CUSTOMER_PRESENT : CUSTOMER_ABSENT;
+}
+
+function botMessages(agent, runData) {
+  return agent.sendNodes.reduce((total, name) => total + runOutputs(runData, name).length, ZERO);
+}
+
 function summarize(exec) {
   const agent = AGENTS[exec.workflowId];
   const runData = exec.data?.resultData?.runData || {};
@@ -225,6 +246,9 @@ function summarize(exec) {
     is_request: isRequest,
     conversation_id: conversationId(agent, runData),
     lane: agent.laneNodes.find((name) => ran(runData, name)) || null,
+    country: country(agent, runData),
+    customer_messages: customerMessages(agent, runData),
+    bot_messages: botMessages(agent, runData),
     model: findModel(runs),
     ...sumTokens(runs),
     error_kind: errorKind(exec, agent, runData, isRequest),
@@ -260,7 +284,7 @@ return buildBatches(pages, cursors, Date.now());`
     },
     position: [960, 300]
   },
-  output: [{ rows: [{ instance: 'A', execution_id: '1827418', workflow_id: 'R81I6h5KWtyNaDAy', agent_key: 'atc', started_at: '2026-09-30T20:04:29.670Z', stopped_at: '2026-09-30T20:04:58.325Z', status: 'success', is_request: true, conversation_id: '2113853670', lane: 'Ventas', model: 'gpt-5-mini', prompt_tokens: 55849, completion_tokens: 1086, total_tokens: 56935, error_kind: null }], cursors: { R81I6h5KWtyNaDAy: 1827418, FS68xVacNF1DN9cd: 0 } }]
+  output: [{ rows: [{ instance: 'A', execution_id: '1827418', workflow_id: 'R81I6h5KWtyNaDAy', agent_key: 'atc', started_at: '2026-09-30T20:04:29.670Z', stopped_at: '2026-09-30T20:04:58.325Z', status: 'success', is_request: true, conversation_id: '2113853670', lane: 'Ventas', country: 'Perú', customer_messages: 1, bot_messages: 1, model: 'gpt-5-mini', prompt_tokens: 55849, completion_tokens: 1086, total_tokens: 56935, error_kind: null }], cursors: { R81I6h5KWtyNaDAy: 1827418, FS68xVacNF1DN9cd: 0 } }]
 });
 
 const ingestBatch = node({
